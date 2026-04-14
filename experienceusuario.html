@@ -1,0 +1,100 @@
+<header class="topbar">
+  <div class="brand">
+    <span class="dot"></span>
+    <strong>InstaHistory</strong>
+  </div>
+  <nav class="actions">
+    <a href="qr.html" class="btn secondary">Ir a QR</a>
+    <a href="index.html" class="btn danger">Salir</a>
+  </nav>
+</header>
+
+<main class="three-panels">
+
+  <section class="hud">
+    <h2 class="h2">Opciones</h2>
+
+    <div class="stack">
+      <button class="btn menu-btn active" data-panel="modelos">Modelos</button>
+      <button class="btn menu-btn" data-panel="audios">Audios</button>
+      <button class="btn menu-btn" data-panel="animaciones">Animaciones</button>
+    </div>
+  </section>
+
+  <section class="hud">
+
+    <div id="panel-modelos" class="content-panel active-panel">
+
+      <h2 class="h2">Modelos OBJ</h2>
+
+      <p class="muted">
+        Los modelos se leen automáticamente desde <strong>assets/modelos</strong>.
+      </p>
+
+      <div class="stack">
+        <span class="label">Modelos disponibles</span>
+        <div id="modelsList" class="modelsList">
+          <p class="muted">Buscando modelos...</p>
+        </div>
+      </div>
+
+      <div class="stack">
+        <label class="label">Opacidad del modelo</label>
+        <input id="modelOpacity" type="range" min="20" max="100" value="100" />
+      </div>
+
+      <div class="row wrap">
+        <button id="resetView" class="btn secondary">Reiniciar vista</button>
+        <button id="clearModel" class="btn secondary">Quitar modelo</button>
+      </div>
+
+      <div class="stack">
+        <span class="label">Estado</span>
+        <p id="statusText" class="muted">Esperando selección...</p>
+      </div>
+
+    </div>
+
+    <div id="panel-audios" class="content-panel">
+
+      <h2 class="h2">Audio</h2>
+
+      <div class="stack">
+        <button class="btn" id="btnStartAudio">Iniciar</button>
+        <button class="btn secondary" id="btnPauseAudio">Pausar</button>
+        <button class="btn secondary" id="btnToggleAD">Audiodescripción</button>
+      </div>
+
+      <p id="subtitle" class="muted">Presiona iniciar</p>
+
+      <audio id="audio">
+        <source src="assets/audio/audio.mp3">
+      </audio>
+
+      <audio id="audioAD">
+        <source src="assets/audio/audiodescripcion.mp3">
+      </audio>
+
+    </div>
+
+    <div id="panel-animaciones" class="content-panel">
+
+      <h2 class="h2">Animaciones</h2>
+
+      <div class="stack">
+        <button class="btn">Cargar animación</button>
+        <button class="btn secondary">Ver animación</button>
+        <button class="btn secondary">Reiniciar animación</button>
+        <button class="btn secondary">Pausar animación</button>
+      </div>
+
+    </div>
+
+  </section>
+
+  <section class="canvasWrap">
+    <canvas id="threeCanvas"></canvas>
+    <div class="badge">OBJ Preview</div>
+  </section>
+
+</main>

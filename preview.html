@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>InstaHistory — Vista estudiante</title>
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.164/build/three.module.js"
+    }
+  }
+  </script>
+  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+</head>
+<body class="bg preview-body">
+
+<header class="topbar">
+  <div class="brand">
+    <span class="dot"></span>
+    <strong>InstaHistory</strong>
+    <span class="muted">| Vista previa</span>
+  </div>
+  <nav class="actions">
+    <a href="qr.html" class="btn secondary">Ir a QR</a>
+    <button type="button" class="btn danger" id="btnLogout">Salir</button>
+  </nav>
+</header>
+
+<main class="preview-only-main">
+  <h2 class="h2 h2-center">Vista previa</h2>
+  <p id="previewHint" class="muted small-gap"></p>
+
+  <div class="preview-flow">
+    <div class="previewStack preview-stack-large" id="previewStack">
+      <canvas id="threeCanvas"></canvas>
+      <img id="previewAudioImg" class="preview-layer preview-layer-top" alt="Imagen urna" hidden />
+      <video id="previewAnimVideo" class="preview-layer preview-layer-top" playsinline hidden></video>
+      <img id="previewAnimGif" class="preview-layer preview-layer-top" alt="" hidden />
+    </div>
+
+    <div class="student-controls" id="studentControls" hidden>
+      <button type="button" class="btn" id="pvPlay">Iniciar</button>
+      <button type="button" class="btn secondary" id="pvPause">Pausar</button>
+      <button type="button" class="btn secondary" id="pvRestart">Reiniciar</button>
+      <button type="button" class="btn secondary" id="pvToggleAD" title="Activa o desactiva subtítulos. Si existe pista AD, alterna entre narración y audiodescripción.">Subtítulos ON/OFF</button>
+    </div>
+
+    <p id="subtitle" class="subtitle-box student-subtitle" hidden></p>
+    <p id="animSubtitle" class="subtitle-box student-subtitle" hidden></p>
+  </div>
+
+  <audio id="audioMain" preload="auto" playsinline></audio>
+  <audio id="audioAD" preload="auto" playsinline></audio>
+  <audio id="audioAnim" preload="metadata"></audio>
+  <audio id="audioAnimAD" preload="metadata"></audio>
+</main>
+
+<script type="module">
+  import { hydrateAppStateFromStorage } from "./js/state.js";
+  await hydrateAppStateFromStorage();
+  await import("./js/preview.js");
+</script>
+</body>
+</html>

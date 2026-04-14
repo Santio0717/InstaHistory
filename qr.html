@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>InstaHistory — QR</title>
+  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+</head>
+<body class="bg">
+  <header class="topbar">
+    <div class="brand">
+      <span class="dot"></span>
+      <strong>InstaHistory</strong>
+      <span class="muted">| QR</span>
+    </div>
+
+    <nav class="actions">
+      <a class="btn secondary" href="qr.html">Ir a QR</a>
+      <a class="btn secondary" href="experience.html">Volver</a>
+      <button type="button" class="btn danger" id="btnQrLogout">Salir</button>
+    </nav>
+  </header>
+
+  <main class="card wide qr-main">
+    <h2 class="h2 h2-center">Escanea para continuar</h2>
+
+
+    <div class="qrBox">
+        <img
+        src="assets/qrppt.png"
+        alt="Código QR para continuar"
+        class="qrImage"
+         />
+
+        <p class="muted small">
+        Escanea el QR para abrir el enlace en tu celular.
+        </p>
+
+        <a class="link" href="https://view.genially.com/68db0c31743c13b46e8cdb86"
+         target="_blank" rel="noopener">
+         Abrir enlace
+        </a>
+    </div>
+  </main>
+
+  <script type="module">
+    import { logout } from "./js/state.js";
+    document.getElementById("btnQrLogout").addEventListener("click", () => logout());
+  </script>
+</body>
+</html>

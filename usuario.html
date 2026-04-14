@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>InstaHistory — Estudiante</title>
+  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+</head>
+
+<body class="bg login-page">
+
+<header class="topbar">
+  <div class="brand">
+    <span class="dot"></span>
+    <strong>InstaHistory</strong>
+    <span class="muted">| Estudiante</span>
+  </div>
+  <nav class="actions">
+    <a href="qr.html" class="btn secondary">Ir a QR</a>
+    <button type="button" class="btn danger" id="btnLogout">Salir</button>
+  </nav>
+</header>
+
+<div class="login-wrap">
+  <main class="card">
+    <h1>InstaHistory</h1>
+    <p class="muted">Completa tus datos</p>
+
+    <form class="form" id="userForm">
+
+      <label>
+        Nombre
+        <input id="nombre" type="text" placeholder="Tu nombre" required />
+      </label>
+
+      <label>
+        Apellido
+        <input id="apellido" type="text" placeholder="Tu apellido" required />
+      </label>
+
+      <p id="errorUser" class="error"></p>
+
+      <button class="btn" type="submit">
+        Continuar
+      </button>
+
+    </form>
+  </main>
+</div>
+
+<script type="module" src="js/usuario.js"></script>
+</body>
+</html>
