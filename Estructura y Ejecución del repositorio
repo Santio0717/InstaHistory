@@ -1,0 +1,27 @@
+Estructura y Ejecución del repositorio
+
+El repositorio del proyecto se encuentra organizado en diferentes componentes que permiten ejecutar tanto la aplicación web como el módulo de interacción con el dispositivo de control.
+
+Una vez descargado el repositorio desde GitHub, el usuario debe proceder a descomprimir los archivos en una carpeta local. Al realizar este proceso, se identifican dos partes principales del sistema:
+(1) la aplicación web del SMMV, y
+(2) el módulo de interacción con el control externo.
+
+Para ejecutar la aplicación web, se debe ubicar el archivo experience.html, el cual corresponde al punto de entrada del sistema. Posteriormente, desde el entorno de desarrollo (por ejemplo, Visual Studio Code), se recomienda abrir el panel lateral donde se encuentran todos los archivos del proyecto (scripts, estilos y recursos).
+
+En este entorno, el usuario debe abrir una terminal dentro de la carpeta del proyecto y ejecutar el siguiente comando:
+
+python3 -m http.server 8080
+
+Este comando permite levantar un servidor local que facilita la correcta ejecución de la aplicación web. Una vez iniciado el servidor, se debe acceder desde el navegador a la siguiente dirección:
+
+http://127.0.0.1:8080/index.htm
+
+De esta manera, se podrá visualizar la aplicación en funcionamiento dentro del entorno local.
+
+Por otro lado, el sistema cuenta con un módulo independiente relacionado con la interacción mediante un control (joystick tipo PlayStation). Para comprender su funcionamiento, se debe acceder a la ruta:
+
+InteraccionControl/comandos.txt
+
+En este archivo se encuentra documentada la lógica de funcionamiento del control, incluyendo las acciones asociadas a cada botón y su efecto sobre el modelo 3D (como rotación y zoom de la urna). Este módulo permite manipular la visualización del objeto de manera interactiva, aunque actualmente su ejecución se realiza de forma independiente a la aplicación web.
+
+En conjunto, esta estructura permite diferenciar claramente los componentes del sistema, facilitando tanto su ejecución como futuras integraciones entre el entorno web y el módulo de interacción física.
