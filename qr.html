@@ -18,30 +18,27 @@
       <span class="muted">| QR</span>
     </div>
 
-```
+
 <nav class="actions">
   <a class="btn secondary" href="qr.html">Ir a QR</a>
   <a class="btn secondary" href="experience.html">Volver</a>
   <button type="button" class="btn danger" id="btnQrLogout">Salir</button>
 </nav>
-```
+
 
   </header>
 
   <main class="card wide qr-main">
     <h2 class="h2 h2-center">Escanea para continuar</h2>
 
-```
 <div class="qrBox">
 
-  <!-- QR generado dinámicamente -->
   <div id="qrcode" class="qrImage"></div>
 
   <p class="muted small">
     Escanea el QR para abrir la experiencia en tu celular.
   </p>
 
-  <!-- Link directo (backup) -->
   <a 
     class="link" 
     href="https://linktr.ee/sanagustin_experiencia" 
@@ -51,11 +48,10 @@
   </a>
 
 </div>
-```
+
 
   </main>
 
-  <!-- Librería QR -->
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
@@ -65,10 +61,9 @@
     document.getElementById("btnQrLogout")
       .addEventListener("click", () => logout());
 
-    // 🔥 TU LINKTREE AQUÍ
+    
     const linktreeURL = "https://linktr.ee/sanagustin_experiencia";
 
-    // Generar QR
     new QRCode(document.getElementById("qrcode"), {
       text: linktreeURL,
       width: 220,
