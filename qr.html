@@ -11,65 +11,61 @@
 
 <body class="bg">
 
-  <header class="topbar">
-    <div class="brand">
-      <span class="dot"></span>
-      <strong>InstaHistory</strong>
-      <span class="muted">| QR</span>
-    </div>
+<header class="topbar">
+  <div class="brand">
+    <span class="dot"></span>
+    <strong>InstaHistory</strong>
+    <span class="muted">| QR</span>
+  </div>
 
+  <nav class="actions">
+    <a class="btn secondary" href="qr.html">Ir a QR</a>
+    <a class="btn secondary" href="experience.html">Volver</a>
+    <button type="button" class="btn danger" id="btnQrLogout">Salir</button>
+  </nav>
+</header>
 
-<nav class="actions">
-  <a class="btn secondary" href="qr.html">Ir a QR</a>
-  <a class="btn secondary" href="experience.html">Volver</a>
-  <button type="button" class="btn danger" id="btnQrLogout">Salir</button>
-</nav>
+<main class="card wide qr-main">
+  <h2 class="h2 h2-center">Escanea para continuar</h2>
 
+  <div class="qrBox">
 
-  </header>
+```
+<!-- QR centrado -->
+<div id="qrcode"></div>
 
-  <main class="card wide qr-main">
-    <h2 class="h2 h2-center">Escanea para continuar</h2>
+<p class="muted small">
+  Escanea el QR para abrir la experiencia en tu celular.
+</p>
 
-<div class="qrBox">
+<a 
+  class="link" 
+  href="https://linktr.ee/sanagustin_experiencia" 
+  target="_blank" 
+  rel="noopener">
+  Abrir contenido
+</a>
+```
 
-  <div id="qrcode" class="qrImage"></div>
+  </div>
+</main>
 
-  <p class="muted small">
-    Escanea el QR para abrir la experiencia en tu celular.
-  </p>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
-  <a 
-    class="link" 
-    href="https://linktr.ee/sanagustin_experiencia" 
-    target="_blank" 
-    rel="noopener">
-    Abrir contenido
-  </a>
+<script type="module">
+  import { logout } from "./js/state.js";
 
-</div>
+  document.getElementById("btnQrLogout")
+    .addEventListener("click", () => logout());
 
+  const linktreeURL = "https://linktr.ee/sanagustin_experiencia";
 
-  </main>
-
-
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-
-  <script type="module">
-    import { logout } from "./js/state.js";
-
-    document.getElementById("btnQrLogout")
-      .addEventListener("click", () => logout());
-
-    
-    const linktreeURL = "https://linktr.ee/sanagustin_experiencia";
-
-    new QRCode(document.getElementById("qrcode"), {
-      text: linktreeURL,
-      width: 220,
-      height: 220
-    });
-  </script>
+  new QRCode(document.getElementById("qrcode"), {
+    text: linktreeURL,
+    width: 220,
+    height: 220
+  });
+</script>
 
 </body>
 </html>
