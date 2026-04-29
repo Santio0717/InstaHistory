@@ -1,4 +1,5 @@
 <!doctype html>
+
 <html lang="es">
 <head>
   <meta charset="utf-8" />
@@ -7,7 +8,9 @@
   <link rel="stylesheet" href="css/styles.css" />
   <link rel="icon" type="image/svg+xml" href="favicon.svg" />
 </head>
+
 <body class="bg">
+
   <header class="topbar">
     <div class="brand">
       <span class="dot"></span>
@@ -15,38 +18,64 @@
       <span class="muted">| QR</span>
     </div>
 
-    <nav class="actions">
-      <a class="btn secondary" href="qr.html">Ir a QR</a>
-      <a class="btn secondary" href="experience.html">Volver</a>
-      <button type="button" class="btn danger" id="btnQrLogout">Salir</button>
-    </nav>
+```
+<nav class="actions">
+  <a class="btn secondary" href="qr.html">Ir a QR</a>
+  <a class="btn secondary" href="experience.html">Volver</a>
+  <button type="button" class="btn danger" id="btnQrLogout">Salir</button>
+</nav>
+```
+
   </header>
 
   <main class="card wide qr-main">
     <h2 class="h2 h2-center">Escanea para continuar</h2>
 
+```
+<div class="qrBox">
 
-    <div class="qrBox">
-        <img
-        src="assets/qrppt.png"
-        alt="Código QR para continuar"
-        class="qrImage"
-         />
+  <!-- QR generado dinámicamente -->
+  <div id="qrcode" class="qrImage"></div>
 
-        <p class="muted small">
-        Escanea el QR para abrir el enlace en tu celular.
-        </p>
+  <p class="muted small">
+    Escanea el QR para abrir la experiencia en tu celular.
+  </p>
 
-        <a class="link" href="https://view.genially.com/68db0c31743c13b46e8cdb86"
-         target="_blank" rel="noopener">
-         Abrir enlace
-        </a>
-    </div>
+  <!-- Link directo (backup) -->
+  <a 
+    class="link" 
+    href="https://linktr.ee/sanagustin_experiencia" 
+    target="_blank" 
+    rel="noopener">
+    Abrir contenido
+  </a>
+
+</div>
+```
+
   </main>
+
+  <!-- Librería QR -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
   <script type="module">
     import { logout } from "./js/state.js";
-    document.getElementById("btnQrLogout").addEventListener("click", () => logout());
+
+    document.getElementById("btnQrLogout")
+      .addEventListener("click", () => logout());
+
+    // 🔥 TU LINKTREE AQUÍ
+    const linktreeURL = "https://linktr.ee/sanagustin_experiencia";
+
+    // Generar QR
+    new QRCode(document.getElementById("qrcode"), {
+      text: linktreeURL,
+      width: 220,
+      height: 220
+    });
   </script>
+
 </body>
 </html>
+
