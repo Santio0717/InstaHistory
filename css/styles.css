@@ -13,21 +13,23 @@ box-sizing:border-box;
 font-family:system-ui;
 }
 
-body{
-overflow-x:hidden;
+/* 🔥 SOLUCIÓN FONDO GLOBAL */
+html, body{
+height:100%;
 }
 
 body.bg{
+min-height:100vh;
 background: radial-gradient(circle at top left,#1f2a44,#0b1020);
 color:var(--text);
 }
 
-/* ===== LOGIN CENTRADO CORRECTAMENTE ===== */
+/* ===== LOGIN ===== */
 
 body.login{
 display:flex;
 justify-content:center;
-align-items:center; /* 👈 centrado vertical REAL */
+align-items:center;
 min-height:100vh;
 }
 
@@ -35,11 +37,11 @@ min-height:100vh;
 width:100%;
 display:flex;
 justify-content:center;
-align-items:center; /* 👈 centrado completo */
+align-items:center;
 padding:20px;
 }
 
-/* ===== TARJETA ===== */
+/* ===== CARD ===== */
 
 .card{
 width:100%;
@@ -50,20 +52,7 @@ background:rgba(30,43,74,.6);
 backdrop-filter:blur(10px);
 display:flex;
 flex-direction:column;
-gap:20px;
-}
-
-/* ===== TEXTOS ===== */
-
-.card h1{
-text-align:center;
-font-size:28px;
-}
-
-.card p{
-text-align:center;
-font-size:14px;
-color:var(--muted);
+gap:22px;
 }
 
 /* ===== FORM ===== */
@@ -71,26 +60,24 @@ color:var(--muted);
 .form{
 display:flex;
 flex-direction:column;
-gap:20px;
-width:100%;
+gap:22px;
 }
+
+/* 🔥 FIX REAL DE SEPARACIÓN */
 
 .field{
 display:flex;
 flex-direction:column;
-gap:6px; /* 👈 separación label-input */
 width:100%;
+margin-bottom:10px;
 }
-
-/* ===== LABELS ===== */
 
 .form label{
 font-size:13px;
 color:var(--muted);
-margin-bottom:2px; /* 👈 separación extra */
+margin-bottom:8px; /* 👈 MÁS separación */
+display:block;
 }
-
-/* ===== INPUTS ===== */
 
 input{
 padding:14px 16px;
@@ -100,7 +87,6 @@ background:#0f172a;
 color:white;
 width:100%;
 outline:none;
-font-size:14px;
 }
 
 /* ===== BOTONES ===== */
@@ -113,26 +99,12 @@ background:var(--accent);
 cursor:pointer;
 font-weight:500;
 text-align:center;
-white-space:nowrap;
 transition:all 0.2s ease;
 color:#fff;
 }
 
-.btn:hover{
-transform:translateY(-2px);
-opacity:0.9;
-}
-
 .btn.full{
 width:100%;
-margin-top:10px;
-}
-
-/* ===== BOTÓN SECUNDARIO (ESTUDIANTE) ===== */
-
-.btn.secondary{
-background:#334155;
-color:var(--text);
 }
 
 /* ===== TOPBAR ===== */
@@ -144,27 +116,18 @@ align-items:center;
 padding:15px 20px;
 }
 
-.actions{
-display:flex;
-gap:12px;
-}
-
-.btn.danger{
-background:#b91c1c;
-color:#fff;
-}
-
-/* ===== RESTO (SIN CAMBIOS IMPORTANTES) ===== */
+/* ===== PANEL ADMIN ===== */
 
 .three-panels{
 display:grid;
 grid-template-columns:220px 1fr 1fr;
 gap:24px;
 padding:24px;
-align-items:start;
 max-width:1400px;
 margin:0 auto;
 }
+
+/* 🔥 PANEL IZQUIERDO (OPCIONES) */
 
 .hud{
 background:var(--card);
@@ -173,119 +136,53 @@ border-radius:20px;
 height:100%;
 }
 
-.canvasWrap{
-background:var(--card);
-border-radius:20px;
-}
+/* 🔥 BOTONES IGUALES Y ALINEADOS */
 
 .stack{
 display:flex;
 flex-direction:column;
 gap:12px;
-align-items:flex-start;
+width:100%;
 }
 
-.content-panel{
-display:none;
+.stack .btn{
+width:100%;           /* 👈 todos igual tamaño */
+text-align:center;
+padding:12px;
 }
 
-.content-panel.active-panel{
-display:block;
-}
+/* 🔥 BOTÓN ACTIVO */
 
 .btn-active{
 outline:2px solid var(--accent);
 }
 
-.file-input{
-position:absolute;
-left:-9999px;
-width:1px;
-height:1px;
-opacity:0;
+/* ===== PANEL CENTRAL ===== */
+
+.canvasWrap{
+background:var(--card);
+border-radius:20px;
+padding:20px;
 }
 
-.h2{
-font-size:1.05rem;
-margin-bottom:10px;
-font-weight:600;
-}
-
-.h2-center{
-text-align:center;
-}
-
-.label{
-font-size:13px;
-color:var(--muted);
-}
+/* ===== PREVIEW ===== */
 
 .previewStack{
-position:relative;
 width:100%;
-max-width:600px;
 height:520px;
-margin:0 auto;
 display:flex;
 align-items:center;
 justify-content:center;
 background:#000;
 border-radius:16px;
-padding:10px;
-box-shadow:0 10px 40px rgba(0,0,0,0.6);
 }
 
-#threeCanvas{
-display:block;
-width:100%;
-height:100%;
-border-radius:12px;
+/* ===== OTROS ===== */
+
+.btn.secondary{
+background:#334155;
 }
 
-.dot{
-width:8px;
-height:8px;
-border-radius:50%;
-background:var(--accent);
-margin-right:6px;
-display:inline-block;
-}
-
-.brand{
-display:flex;
-align-items:center;
-gap:6px;
-}
-
-.card.wide{
-max-width:560px;
-width:calc(100% - 40px);
-margin:20px auto;
-}
-
-.qr-main{
-display:flex;
-flex-direction:column;
-align-items:center;
-justify-content:center;
-}
-
-#qrcode{
-width:220px;
-height:220px;
-margin:0 auto;
-display:flex;
-align-items:center;
-justify-content:center;
-}
-
-#qrcode canvas,
-#qrcode img{
-width:220px;
-height:220px;
-border-radius:12px;
-}
-
-.link{
-color:var(--accent);
+.btn.danger{
+background:#b91c1c;
 }
