@@ -13,7 +13,7 @@
   font-family:system-ui;
 }
 
-/* ===== BASE ===== */
+/* ===== BASE GLOBAL ===== */
 
 html, body{
   height:100%;
@@ -22,7 +22,7 @@ html, body{
 body.bg{
   min-height:100vh;
   display:flex;
-  flex-direction:column; /* 🔥 clave */
+  flex-direction:column; /* 🔥 CLAVE */
   background: radial-gradient(circle at top left,#1f2a44,#0b1020);
   color:var(--text);
 }
@@ -41,6 +41,14 @@ body.bg{
 .actions{
   display:flex;
   gap:10px;
+}
+
+/* ===== MAIN (🔥 ESTO SOLUCIONA EL FONDO) ===== */
+
+main{
+  flex:1;
+  display:flex;
+  flex-direction:column;
 }
 
 /* ===== LOGIN ===== */
@@ -69,7 +77,7 @@ body.login{
   backdrop-filter:blur(10px);
   display:flex;
   flex-direction:column;
-  gap:20px; /* 🔥 consistente */
+  gap:20px;
 }
 
 /* ===== FORM ===== */
@@ -149,20 +157,20 @@ input{
   border:1px solid #b91c1c;
 }
 
-/* ===== PANEL ADMIN ===== */
+/* ===== ADMIN LAYOUT ===== */
 
 .three-panels{
-  flex:1; /* 🔥 clave */
+  flex:1; /* 🔥 CLAVE */
   display:grid;
   grid-template-columns:220px 350px 1fr;
   gap:24px;
   padding:24px;
+  width:100%;
   max-width:1400px;
   margin:0 auto;
-  width:100%;
 }
 
-/* 🔥 TODOS LOS PANELES MISMA ALTURA */
+/* ===== PANELES ===== */
 
 .hud,
 .canvasWrap{
@@ -171,7 +179,8 @@ input{
   border-radius:20px;
   display:flex;
   flex-direction:column;
-  gap:16px; /* 🔥 separación uniforme */
+  gap:16px;
+  height:100%; /* 🔥 evita cortes */
 }
 
 /* ===== MENÚ ===== */
