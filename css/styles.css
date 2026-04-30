@@ -13,7 +13,7 @@
   font-family:system-ui;
 }
 
-/* ===== FONDO ===== */
+/* ===== BASE ===== */
 
 html, body{
   height:100%;
@@ -21,24 +21,13 @@ html, body{
 
 body.bg{
   min-height:100vh;
+  display:flex;
+  flex-direction:column; /* 🔥 clave */
   background: radial-gradient(circle at top left,#1f2a44,#0b1020);
   color:var(--text);
 }
 
-/* ===== LAYOUT GENERAL (IMPORTANTE) ===== */
-
-.login-page{
-  min-height:100vh;
-  display:flex;
-  flex-direction:column;
-}
-
-/* 🔥 NO CENTRAR TODO EL BODY (arregla tu error) */
-body.login{
-  min-height:100vh;
-}
-
-/* ===== TOPBAR (ARRIBA FIJO VISUALMENTE) ===== */
+/* ===== TOPBAR ===== */
 
 .topbar{
   width:100%;
@@ -46,6 +35,7 @@ body.login{
   justify-content:space-between;
   align-items:center;
   padding:15px 20px;
+  flex-shrink:0;
 }
 
 .actions{
@@ -53,7 +43,12 @@ body.login{
   gap:10px;
 }
 
-/* ===== CONTENEDOR CENTRAL ===== */
+/* ===== LOGIN ===== */
+
+body.login{
+  justify-content:center;
+  align-items:center;
+}
 
 .login-wrap{
   flex:1;
@@ -74,7 +69,7 @@ body.login{
   backdrop-filter:blur(10px);
   display:flex;
   flex-direction:column;
-  gap:20px;
+  gap:20px; /* 🔥 consistente */
 }
 
 /* ===== FORM ===== */
@@ -86,20 +81,26 @@ body.login{
   gap:18px;
 }
 
-/* 🔥 SEPARACIÓN CORRECTA */
-
 .field{
   display:flex;
   flex-direction:column;
   gap:8px;
-  width:100%;
 }
 
-/* ===== LABEL ===== */
+/* ===== TEXTOS ===== */
 
 label{
-  display:block;
   font-size:13px;
+  color:var(--muted);
+}
+
+.label{
+  font-size:13px;
+  color:var(--muted);
+  margin-bottom:6px;
+}
+
+.muted{
   color:var(--muted);
 }
 
@@ -126,7 +127,7 @@ input{
   color:#fff;
   font-weight:500;
   text-align:center;
-  transition:all .2s ease;
+  transition:.2s;
 }
 
 .btn:hover{
@@ -134,13 +135,8 @@ input{
   opacity:.9;
 }
 
-.btn.full{
-  width:100%;
-}
-
 .btn.secondary{
   background:#334155;
-  color:var(--text);
 }
 
 .btn.danger{
@@ -156,35 +152,35 @@ input{
 /* ===== PANEL ADMIN ===== */
 
 .three-panels{
+  flex:1; /* 🔥 clave */
   display:grid;
   grid-template-columns:220px 350px 1fr;
-  gap:20px;
-  padding:20px;
+  gap:24px;
+  padding:24px;
   max-width:1400px;
   margin:0 auto;
+  width:100%;
 }
 
-.hud{
+/* 🔥 TODOS LOS PANELES MISMA ALTURA */
+
+.hud,
+.canvasWrap{
   background:var(--card);
   padding:20px;
   border-radius:20px;
+  display:flex;
+  flex-direction:column;
+  gap:16px; /* 🔥 separación uniforme */
 }
 
-.canvasWrap{
-  background:var(--card);
-  border-radius:20px;
-}
-
-/* ===== MENÚ IZQUIERDO ===== */
+/* ===== MENÚ ===== */
 
 .stack{
   display:flex;
   flex-direction:column;
   gap:12px;
-  width:100%;
 }
-
-/* 🔥 BOTONES IGUALES */
 
 .stack .btn{
   width:100%;
@@ -196,36 +192,14 @@ input{
 
 /* ===== CONTENIDO ===== */
 
-.content-panel{display:none;}
-.content-panel.active-panel{display:block;}
-
-.btn-active{
-  outline:2px solid var(--accent);
+.content-panel{
+  display:none;
+  flex-direction:column;
+  gap:16px;
 }
 
-/* ===== FILE INPUT ===== */
-
-.file-input{
-  position:absolute;
-  left:-9999px;
-  width:1px;
-  height:1px;
-  opacity:0;
-}
-
-/* ===== TEXTOS ===== */
-
-.h2{
-  font-size:1.05rem;
-  margin-bottom:10px;
-  font-weight:600;
-}
-
-.h2-center{text-align:center;}
-
-.label{
-  font-size:13px;
-  color:var(--muted);
+.content-panel.active-panel{
+  display:flex;
 }
 
 /* ===== FILAS ===== */
@@ -233,13 +207,12 @@ input{
 .row.wrap{
   display:flex;
   flex-wrap:wrap;
-  gap:10px;
+  gap:12px;
 }
 
 /* ===== SUBTÍTULOS ===== */
 
 .subtitle-box{
-  min-height:3.2em;
   padding:12px;
   border-radius:10px;
   background:#0f172a;
@@ -249,14 +222,15 @@ input{
 /* ===== PREVIEW ===== */
 
 .preview-column{
-  padding:20px;
   display:flex;
   flex-direction:column;
+  gap:16px;
 }
 
 .previewStack{
   width:100%;
-  height:520px;
+  flex:1;
+  min-height:500px;
   background:#000;
   border-radius:16px;
   display:flex;
@@ -271,6 +245,14 @@ input{
   height:100%;
 }
 
+/* ===== FILE INPUT ===== */
+
+.file-input{
+  position:absolute;
+  left:-9999px;
+  opacity:0;
+}
+
 /* ===== BRAND ===== */
 
 .dot{
@@ -278,30 +260,10 @@ input{
   height:8px;
   border-radius:50%;
   background:var(--accent);
-  display:inline-block;
 }
 
 .brand{
   display:flex;
   align-items:center;
   gap:6px;
-}
-
-/* ===== QR ===== */
-
-.card.wide{
-  max-width:560px;
-  margin:20px auto;
-}
-
-#qrcode{
-  width:220px;
-  height:220px;
-  margin:0 auto;
-}
-
-/* ===== LINKS ===== */
-
-.link{
-  color:var(--accent);
 }
