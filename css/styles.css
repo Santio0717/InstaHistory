@@ -27,73 +27,62 @@ body{
 
 body.bg{
   min-height:100vh;
-  display:flex;
-  flex-direction:column;
   background:radial-gradient(circle at top left,#1f2a44,#0b1020);
   color:var(--text);
 }
 
-/* ===== MAIN FIX (NO CORTES) ===== */
+/* ===== TOPBAR ===== */
 
-main{
-  flex:1;
+.topbar{
   display:flex;
-}
-
-/* ===== LOGIN ===== */
-
-body.login{
-  display:flex;
-  justify-content:center;
+  justify-content:space-between;
   align-items:center;
+  padding:15px 20px;
 }
 
-body.login main{
-  display:block;
-  flex:none;
+.actions{
+  display:flex;
+  gap:10px;
 }
+
+/* ===== LOGIN / FORMULARIO (FIX SIN ROMPER) ===== */
 
 .login-wrap{
   width:100%;
   display:flex;
   justify-content:center;
   align-items:center;
-  padding:20px;
+  padding:40px 20px;
 }
 
 .card{
-  width:360px;
-  padding:35px;
+  width:min(400px,92vw);
+  padding:30px;
   border-radius:20px;
   background:rgba(30,43,74,.6);
   backdrop-filter:blur(10px);
+  display:flex;
+  flex-direction:column;
+  gap:20px;
 }
-
-.card-login{
-  width:min(400px,92vw);
-  padding:28px 32px;
-  border:1px solid rgba(255,255,255,.08);
-  box-shadow:0 18px 48px rgba(0,0,0,.35);
-}
-
-/* ===== FORM ===== */
 
 .form,
 .form-login{
-  display:grid;
+  display:flex;
+  flex-direction:column;
   gap:18px;
-}
-
-.form-login label{
-  display:grid;
-  gap:8px;
+  width:100%;
 }
 
 .field{
   display:flex;
   flex-direction:column;
   gap:8px;
-  margin-bottom:12px;
+}
+
+label{
+  font-size:13px;
+  color:var(--muted);
 }
 
 input{
@@ -106,7 +95,7 @@ input{
   outline:none;
 }
 
-/* 🔥 INPUT FILE OCULTO */
+/* 🔥 INPUT FILE OCULTO (como antes) */
 .file-input{
   position:absolute;
   left:-9999px;
@@ -132,34 +121,13 @@ input{
 .btn.secondary{ background:#334155; }
 .btn.danger{ background:#b91c1c; }
 
-.btn-active{
-  outline:2px solid var(--accent);
-}
-
-/* ===== TOPBAR ===== */
-
-.topbar{
-  width:100%;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  padding:15px 20px;
-}
-
-.actions{
-  display:flex;
-  gap:10px;
-}
-
 /* ===== ADMIN ===== */
 
 .three-panels{
-  flex:1;
   display:grid;
   grid-template-columns:220px 350px 1fr;
   gap:20px;
   padding:20px;
-  align-items:stretch;
 }
 
 .hud,
@@ -175,7 +143,8 @@ input{
 /* ===== MENÚ ===== */
 
 .stack{
-  display:grid;
+  display:flex;
+  flex-direction:column;
   gap:12px;
 }
 
@@ -189,23 +158,15 @@ input{
 
 /* ===== CONTENIDO ===== */
 
-.content-panel{ display:none; }
+.content-panel{
+  display:none;
+}
 
 .content-panel.active-panel{
   display:flex;
   flex-direction:column;
   gap:16px;
 }
-
-/* ===== TEXTOS ===== */
-
-.label{
-  font-size:13px;
-  color:var(--muted);
-  margin-bottom:6px;
-}
-
-.muted{ color:var(--muted); }
 
 /* ===== FILAS ===== */
 
@@ -215,17 +176,27 @@ input{
   gap:12px;
 }
 
+/* ===== TEXTOS ===== */
+
+.label{
+  font-size:13px;
+  color:var(--muted);
+}
+
+.muted{
+  color:var(--muted);
+}
+
 /* ===== PREVIEW ADMIN ===== */
 
 .preview-column{
   display:flex;
   flex-direction:column;
   gap:12px;
-  height:100%;
 }
 
 .previewStack{
-  flex:1;
+  width:100%;
   min-height:500px;
   background:#000;
   border-radius:16px;
@@ -237,39 +208,36 @@ input{
   height:100%;
 }
 
-/* ===== PREVIEW ESTUDIANTE ===== */
+/* ===== PREVIEW ESTUDIANTE (FIX REAL) ===== */
 
 .preview-body{
   min-height:100vh;
-  display:flex;
-  flex-direction:column;
 }
 
 .preview-only-main{
-  flex:1;
   max-width:960px;
   margin:0 auto;
   padding:20px;
-  padding-bottom:50px; /* 🔥 FIX */
-  width:100%;
 }
 
-/* ===== CONTROLES ESTUDIANTE ===== */
+/* 🔥 MODELO BIEN PROPORCIONADO */
+.preview-only-main .previewStack{
+  width:100%;
+  min-height:500px;
+  max-height:600px;
+  margin:0 auto;
+}
 
+/* 🔥 BOTONES BIEN UBICADOS */
 .student-controls{
   display:flex;
   flex-wrap:wrap;
   gap:10px;
   justify-content:center;
   margin-top:16px;
-  margin-bottom:20px;
 }
 
-.student-controls .btn{
-  padding:10px 14px;
-  border-radius:20px;
-}
-
+/* 🔥 TEXTO SEPARADO */
 .student-subtitle{
   margin-top:12px;
   margin-bottom:30px;
@@ -289,7 +257,6 @@ input{
   display:flex;
   flex-direction:column;
   align-items:center;
-  justify-content:center;
   text-align:center;
 }
 
