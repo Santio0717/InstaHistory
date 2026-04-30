@@ -22,118 +22,100 @@ background: radial-gradient(circle at top left,#1f2a44,#0b1020);
 color:var(--text);
 }
 
-/* ===== LOGIN / FORM CENTRADO ===== */
+/* ===== LOGIN BIEN POSICIONADO ===== */
 
 body.login{
-min-height:100vh;
 display:flex;
-justify-content:center;
-align-items:center;
+flex-direction:column;
 }
 
 .login-wrap{
 width:100%;
 display:flex;
 justify-content:center;
-align-items:center;
-padding:20px;
+align-items:flex-start; /* 👈 NO centrado vertical total */
+padding-top:100px; /* 👈 BAJA el login */
+padding-bottom:40px;
 }
 
-/* TARJETA IGUAL PARA TODAS LAS PANTALLAS */
+/* TARJETA */
 
 .card{
 width:100%;
-max-width:420px; /* 👈 MÁS ANCHO para que coincida con imagen 1 */
-padding:32px;
-border-radius:22px;
+max-width:380px;
+padding:30px;
+border-radius:20px;
 background:rgba(30,43,74,.6);
 backdrop-filter:blur(10px);
-
 display:flex;
 flex-direction:column;
-gap:26px;
-box-shadow:0 20px 60px rgba(0,0,0,.4);
+gap:22px;
+margin:0 auto;
 }
 
-/* TITULOS */
+/* TEXTOS */
 
-.card h1{
-text-align:center;
-font-size:30px;
-}
-
+.card h1,
 .card p{
 text-align:center;
-color:var(--text);
-opacity:.8;
 }
 
-/* ===== FORMULARIO ===== */
+/* FORM */
 
 .form{
 display:flex;
 flex-direction:column;
-gap:24px; /* 👈 separación vertical general */
+gap:18px;
+width:100%;
 }
-
-/* BLOQUE CAMPO */
 
 .field{
 display:flex;
 flex-direction:column;
-gap:12px; /* 👈 ESTE ES EL FIX CLAVE */
+gap:10px;
+width:100%;
 }
 
-/* LABEL */
-
-label{
+.form label{
 font-size:13px;
 color:var(--muted);
-margin-left:2px;
+margin-bottom:4px;
 }
 
-/* INPUT */
+/* INPUTS */
 
 input{
-width:100%;
-padding:16px 18px; /* 👈 MÁS ESPACIO INTERNO */
-border-radius:12px;
+padding:14px 16px;
+border-radius:10px;
 border:none;
-outline:none;
-background:#0b1730; /* 👈 más oscuro como imagen 1 */
+background:#0f172a;
 color:white;
-font-size:14px;
+width:100%;
+outline:none;
 }
 
-/* placeholder */
-
-input::placeholder{
-color:#6b7aa6;
-}
-
-/* ===== BOTONES ===== */
+/* BOTONES LOGIN */
 
 .btn{
-width:100%;
-padding:14px;
-border-radius:12px;
+padding:12px 16px;
+border-radius:10px;
 border:none;
 background:var(--accent);
-color:#06101f;
 cursor:pointer;
 font-weight:500;
-transition:.2s;
-margin-top:6px;
-}
-
-.btn.secondary{
-background:#37475f;
-color:#fff;
+text-align:center;
+white-space:nowrap;
+transition:all 0.2s ease;
 }
 
 .btn:hover{
 transform:translateY(-2px);
-opacity:.92;
+opacity:0.9;
+}
+
+.btn.full{
+width:100%;
+margin-top:10px;
 }
 
 /* ===== TOPBAR ===== */
@@ -150,13 +132,30 @@ display:flex;
 gap:12px;
 }
 
-/* ===== ADMIN PANEL ===== */
+.btn.secondary{
+background:#334155;
+color:var(--text);
+}
+
+.btn.danger{
+background:#b91c1c;
+color:#fff;
+}
+
+.btn.danger-outline{
+background:transparent;
+color:#fca5a5;
+border:1px solid #b91c1c;
+}
+
+/* ===== PANEL ADMIN ===== */
 
 .three-panels{
 display:grid;
 grid-template-columns:220px 1fr 1fr;
 gap:24px;
 padding:24px;
+align-items:start;
 max-width:1400px;
 margin:0 auto;
 }
@@ -165,6 +164,7 @@ margin:0 auto;
 background:var(--card);
 padding:20px;
 border-radius:20px;
+height:100%;
 }
 
 .canvasWrap{
@@ -172,29 +172,103 @@ background:var(--card);
 border-radius:20px;
 }
 
-/* ===== ELEMENTOS ===== */
+/* ELEMENTOS */
 
 .stack{
 display:flex;
 flex-direction:column;
 gap:12px;
+align-items:flex-start;
 }
+
+.stack.row-gap{
+margin-top:12px;
+gap:12px;
+}
+
+.content-panel{
+display:none;
+}
+
+.content-panel.active-panel{
+display:block;
+}
+
+.btn-active{
+outline:2px solid var(--accent);
+}
+
+/* FILE INPUT */
+
+.file-input{
+position:absolute;
+left:-9999px;
+width:1px;
+height:1px;
+opacity:0;
+}
+
+/* TEXTOS */
+
+.h2{
+font-size:1.05rem;
+margin-bottom:10px;
+font-weight:600;
+}
+
+.h2-center{
+text-align:center;
+}
+
+.label{
+font-size:13px;
+color:var(--muted);
+}
+
+/* BOTONES IZQUIERDA */
 
 .row.wrap{
 display:flex;
 flex-wrap:wrap;
 gap:12px;
+justify-content:flex-start;
 margin-top:10px;
 }
 
+.row.wrap .btn{
+width:auto;
+min-width:140px;
+padding:10px 16px;
+}
+
+/* SUBTÍTULOS */
+
 .subtitle-box{
+min-height:3.2em;
 padding:12px;
 border-radius:10px;
 background:#0f172a;
 font-size:14px;
+line-height:1.4;
 }
 
 /* ===== PREVIEW ===== */
+
+.preview-column{
+padding:20px;
+display:flex;
+flex-direction:column;
+align-items:center;
+}
+
+.preview-flow{
+display:flex;
+flex-direction:column;
+gap:16px;
+align-items:center;
+}
+
+/* CONTENEDOR MODELO */
 
 .previewStack{
 position:relative;
@@ -208,23 +282,36 @@ justify-content:center;
 background:#000;
 border-radius:16px;
 padding:10px;
+box-shadow:0 10px 40px rgba(0,0,0,0.6);
 }
 
+/* CANVAS */
+
 #threeCanvas{
+display:block;
 width:100%;
 height:100%;
 border-radius:12px;
 }
 
-/* ===== BRAND ===== */
+/* TEXTO */
+
+.badge{
+font-size:12px;
+color:var(--muted);
+text-align:center;
+margin-top:10px;
+}
+
+/* BRAND */
 
 .dot{
 width:8px;
 height:8px;
 border-radius:50%;
 background:var(--accent);
-display:inline-block;
 margin-right:6px;
+display:inline-block;
 }
 
 .brand{
@@ -235,35 +322,44 @@ gap:6px;
 
 /* ===== QR ===== */
 
+.card.wide{
+max-width:560px;
+width:calc(100% - 40px);
+margin:20px auto;
+}
+
+.qr-main{
+display:flex;
+flex-direction:column;
+align-items:center;
+justify-content:center;
+}
+
 .qrBox{
 display:flex;
 flex-direction:column;
 align-items:center;
 text-align:center;
 margin-top:16px;
+width:100%;
 }
 
 #qrcode{
 width:220px;
 height:220px;
+margin:0 auto;
 display:flex;
 align-items:center;
 justify-content:center;
 }
 
-/* ===== RESPONSIVE ===== */
-
-@media (max-width:480px){
-.card{
-max-width:92%;
-padding:26px;
+#qrcode canvas,
+#qrcode img{
+width:220px;
+height:220px;
+border-radius:12px;
 }
 
-.form{
-gap:20px;
-}
-
-.field{
-gap:10px;
-}
+.link{
+color:var(--accent);
 }
