@@ -22,15 +22,20 @@ background: radial-gradient(circle at top left,#1f2a44,#0b1020);
 color:var(--text);
 }
 
-/* ===== LOGIN FIX REAL ===== */
+/* ===== LOGIN ===== */
+
+body.login{
+display:flex;
+flex-direction:column;
+}
 
 .login-wrap{
 width:100%;
 display:flex;
 justify-content:center;
-align-items:center;
-min-height:100vh;
-padding:20px;
+align-items:flex-start;
+padding-top:100px;
+padding-bottom:40px;
 }
 
 .card{
@@ -73,7 +78,7 @@ color:var(--muted);
 margin-bottom:4px;
 }
 
-/* INPUTS FIX */
+/* INPUTS */
 
 input{
 padding:14px 16px;
@@ -85,7 +90,7 @@ width:100%;
 outline:none;
 }
 
-/* BOTÓN LOGIN */
+/* BOTONES */
 
 .btn{
 padding:12px 16px;
@@ -139,7 +144,7 @@ color:#fca5a5;
 border:1px solid #b91c1c;
 }
 
-/* ===== PANEL ===== */
+/* ===== PANEL ADMIN ===== */
 
 .three-panels{
 display:grid;
@@ -177,6 +182,38 @@ margin-top:12px;
 gap:12px;
 }
 
+/* 🔥 BOTONES DE CONTROL (FIX REAL) */
+
+.controls{
+display:flex;
+flex-wrap:wrap;
+gap:10px;
+justify-content:flex-start;
+margin-top:10px;
+padding:8px;
+background:rgba(255,255,255,0.05);
+border-radius:14px;
+}
+
+.controls .btn{
+background:#334155;
+color:var(--text);
+padding:10px 16px;
+border-radius:10px;
+}
+
+.controls .btn.active{
+background:var(--accent);
+color:#fff;
+}
+
+.controls .btn:hover{
+transform:translateY(-2px);
+opacity:0.9;
+}
+
+/* ===== CONTENIDO ===== */
+
 .content-panel{
 display:none;
 }
@@ -189,21 +226,15 @@ display:block;
 outline:2px solid var(--accent);
 }
 
-.btn.file-label,
-label.file-label{
-display:inline-block;
-text-align:center;
-cursor:pointer;
-}
-
 .file-input{
 position:absolute;
 left:-9999px;
 width:1px;
 height:1px;
 opacity:0;
-overflow:hidden;
 }
+
+/* TEXTOS */
 
 .h2{
 font-size:1.05rem;
@@ -213,14 +244,6 @@ font-weight:600;
 
 .h2-center{
 text-align:center;
-}
-
-.hud-col{
-min-width:0;
-}
-
-.small-gap{
-margin:8px 0 12px;
 }
 
 .label{
@@ -244,7 +267,7 @@ min-width:140px;
 padding:10px 16px;
 }
 
-/* ===== SUBTÍTULOS ===== */
+/* SUBTÍTULOS */
 
 .subtitle-box{
 min-height:3.2em;
@@ -261,7 +284,6 @@ line-height:1.4;
 padding:20px;
 display:flex;
 flex-direction:column;
-height:100%;
 align-items:center;
 }
 
@@ -269,12 +291,8 @@ align-items:center;
 display:flex;
 flex-direction:column;
 gap:16px;
-flex:1;
-min-width:0;
 align-items:center;
 }
-
-/* CONTENEDOR MUSEO */
 
 .previewStack{
 position:relative;
@@ -300,41 +318,13 @@ height:100%;
 border-radius:12px;
 }
 
-/* CAPAS */
-
-.preview-layer-top{
-z-index:2;
-}
-
-.preview-subtitle{
-width:100%;
-text-align:center;
-}
-
-.preview-layer{
-position:absolute;
-inset:0;
-width:100%;
-height:100%;
-object-fit:contain;
-background:#0f172a;
-}
-
 /* TEXTO */
-
-.badge-center{
-text-align:center;
-margin-top:10px;
-}
 
 .badge{
 font-size:12px;
 color:var(--muted);
-}
-
-.error{
-color:#fca5a5;
-font-size:14px;
+text-align:center;
+margin-top:10px;
 }
 
 /* BRAND */
@@ -373,7 +363,6 @@ justify-content:center;
 display:flex;
 flex-direction:column;
 align-items:center;
-justify-content:center;
 text-align:center;
 margin-top:16px;
 width:100%;
@@ -393,14 +382,6 @@ justify-content:center;
 width:220px;
 height:220px;
 border-radius:12px;
-display:block;
-}
-
-.qrImage{
-max-width:260px;
-border-radius:12px;
-margin:0 auto;
-display:block;
 }
 
 .link{
