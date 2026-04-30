@@ -13,28 +13,37 @@
   font-family:system-ui;
 }
 
+/* ===== FIX GLOBAL ===== */
+
 html, body{
+  height:100%;
   width:100%;
-  min-height:100%;
 }
 
 body{
   overflow-x:hidden;
+  background:#0b1020; /* 🔥 evita franja gris */
 }
 
 body.bg{
   min-height:100vh;
+  display:flex;
+  flex-direction:column;
   background:radial-gradient(circle at top left,#1f2a44,#0b1020);
   color:var(--text);
+}
+
+/* 🔥 CLAVE PARA QUE NO SE CORTE */
+main{
+  flex:1;
+  display:flex;
 }
 
 /* ===== LOGIN ===== */
 
 body.login{
-  display:flex;
   justify-content:center;
   align-items:center;
-  min-height:100vh;
 }
 
 .login-page{
@@ -100,7 +109,7 @@ input[type="range"]:disabled{
   opacity:0.55;
 }
 
-/* 🔥 INPUT FILE OCULTO (COMO ANTES) */
+/* 🔥 INPUT FILE OCULTO */
 .file-input{
   position:absolute;
   left:-9999px;
@@ -148,7 +157,7 @@ input[type="range"]:disabled{
 /* ===== ADMIN ===== */
 
 .three-panels{
-  min-height:calc(100vh - 70px);
+  flex:1; /* 🔥 FIX PRINCIPAL */
   display:grid;
   grid-template-columns:220px 350px 1fr;
   gap:20px;
