@@ -13,11 +13,9 @@
   font-family:system-ui;
 }
 
-/* ===== BASE ===== */
-
-html, body{
-  height:100%;
+html,body{
   width:100%;
+  min-height:100%;
 }
 
 body{
@@ -31,44 +29,89 @@ body.bg{
   color:var(--text);
 }
 
-/* ===== TOPBAR ===== */
-
-.topbar{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  padding:15px 20px;
-}
-
-.actions{
-  display:flex;
-  gap:10px;
-}
-
-/* ===== FIX LOGIN CENTRADO (CORRECCIÓN FINAL) ===== */
-
+/* LOGIN PRINCIPAL */
 body.login{
   min-height:100vh;
   display:flex;
-  align-items:center;
   justify-content:center;
+  align-items:center;
 }
 
-/* contenedor del login */
+.login-page{
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+}
+
 .login-wrap{
+  flex:1;
   width:100%;
   display:flex;
-  align-items:center;
   justify-content:center;
+  align-items:center;
   padding:20px;
 }
 
-/* tarjeta */
-.login-wrap .card{
-  margin:0 auto;
+.card{
+  width:360px;
+  max-width:92vw;
+  padding:35px;
+  border-radius:20px;
+  background:rgba(30,43,74,.6);
+  backdrop-filter:blur(10px);
+  display:flex;
+  flex-direction:column;
+  gap:20px;
 }
 
-/* 🔥 INPUT FILE OCULTO (como antes) */
+.card h1{
+  font-size:32px;
+  line-height:1.1;
+}
+
+.card p{
+  color:var(--text);
+}
+
+/* FORMULARIOS */
+.form,
+.form-login{
+  width:100%;
+  display:flex;
+  flex-direction:column;
+  gap:18px;
+}
+
+.field,
+.form-login label{
+  width:100%;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+
+label,
+.label{
+  font-size:13px;
+  color:var(--muted);
+}
+
+input{
+  width:100%;
+  padding:12px 14px;
+  border-radius:10px;
+  border:none;
+  background:#0f172a;
+  color:white;
+  outline:none;
+}
+
+input[type="range"]:disabled{
+  opacity:.55;
+  cursor:not-allowed;
+}
+
+/* OCULTAR INPUT FILE COMO ANTES */
 .file-input{
   position:absolute;
   left:-9999px;
@@ -78,8 +121,7 @@ body.login{
   overflow:hidden;
 }
 
-/* ===== BOTONES ===== */
-
+/* BOTONES */
 .btn{
   padding:12px;
   border-radius:10px;
@@ -91,16 +133,49 @@ body.login{
   text-align:center;
 }
 
-.btn.secondary{ background:#334155; }
-.btn.danger{ background:#b91c1c; }
+.btn.secondary{
+  background:#334155;
+  color:var(--text);
+}
 
-/* ===== ADMIN ===== */
+.btn.danger{
+  background:#b91c1c;
+  color:#fff;
+}
 
+.btn.danger-outline{
+  background:transparent;
+  color:#fca5a5;
+  border:1px solid #b91c1c;
+}
+
+.btn-active,
+.menu-btn.active{
+  outline:2px solid var(--accent);
+}
+
+/* TOPBAR */
+.topbar{
+  width:100%;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:15px 20px;
+}
+
+.actions{
+  display:flex;
+  gap:10px;
+}
+
+/* ADMIN */
 .three-panels{
+  min-height:calc(100vh - 70px);
   display:grid;
   grid-template-columns:220px 350px 1fr;
   gap:20px;
   padding:20px;
+  align-items:stretch;
 }
 
 .hud,
@@ -113,23 +188,21 @@ body.login{
   gap:16px;
 }
 
-/* ===== MENÚ ===== */
-
 .stack{
   display:flex;
   flex-direction:column;
   gap:12px;
+  position:relative;
 }
 
-.stack .btn{
+.stack .btn,
+.stack .file-label{
   width:100%;
-  height:44px;
+  min-height:44px;
   display:flex;
   align-items:center;
   justify-content:center;
 }
-
-/* ===== CONTENIDO ===== */
 
 .content-panel{
   display:none;
@@ -141,31 +214,48 @@ body.login{
   gap:16px;
 }
 
-/* ===== FILAS ===== */
-
 .row.wrap{
   display:flex;
   flex-wrap:wrap;
   gap:12px;
 }
 
-/* ===== TEXTOS ===== */
+.h2{
+  font-size:1.05rem;
+  margin-bottom:10px;
+  font-weight:600;
+}
 
-.label{
-  font-size:13px;
-  color:var(--muted);
+.h2-center{
+  text-align:center;
 }
 
 .muted{
   color:var(--muted);
 }
 
-/* ===== PREVIEW ADMIN ===== */
+.muted-inline{
+  font-size:.85em;
+  color:var(--muted);
+  font-weight:400;
+}
 
+.small-gap{
+  margin:8px 0 12px;
+}
+
+/* PREVIEW ADMIN */
 .preview-column{
   display:flex;
   flex-direction:column;
   gap:12px;
+}
+
+.preview-flow{
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+  flex:1;
 }
 
 .previewStack{
@@ -177,40 +267,61 @@ body.login{
 }
 
 #threeCanvas{
+  display:block;
   width:100%;
   height:100%;
+  min-height:500px;
 }
 
-/* ===== PREVIEW ESTUDIANTE (FIX REAL) ===== */
+.preview-layer{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  object-fit:contain;
+  background:#0f172a;
+}
 
+.subtitle-box{
+  min-height:3.2em;
+  padding:12px;
+  border-radius:10px;
+  background:#0f172a;
+  font-size:14px;
+  line-height:1.4;
+}
+
+/* VISTA ESTUDIANTE / PREVIEW */
 .preview-body{
   min-height:100vh;
+  display:flex;
+  flex-direction:column;
 }
 
 .preview-only-main{
+  width:100%;
   max-width:960px;
   margin:0 auto;
-  padding:20px;
+  padding:20px 20px 50px;
 }
 
-/* 🔥 MODELO BIEN PROPORCIONADO */
-.preview-only-main .previewStack{
+.preview-only-main .previewStack,
+.preview-stack-large{
   width:100%;
-  min-height:500px;
+  min-height:min(72vh,600px);
   max-height:600px;
   margin:0 auto;
 }
 
-/* 🔥 BOTONES BIEN UBICADOS */
 .student-controls{
   display:flex;
   flex-wrap:wrap;
   gap:10px;
   justify-content:center;
   margin-top:16px;
+  margin-bottom:16px;
 }
 
-/* 🔥 TEXTO SEPARADO */
 .student-subtitle{
   margin-top:12px;
   margin-bottom:30px;
@@ -218,8 +329,7 @@ body.login{
   line-height:1.5;
 }
 
-/* ===== QR ===== */
-
+/* QR */
 .card.wide{
   max-width:560px;
   width:calc(100% - 40px);
@@ -230,6 +340,7 @@ body.login{
   display:flex;
   flex-direction:column;
   align-items:center;
+  justify-content:center;
   text-align:center;
 }
 
@@ -237,6 +348,8 @@ body.login{
   display:flex;
   flex-direction:column;
   align-items:center;
+  justify-content:center;
+  margin-top:16px;
 }
 
 .qrImage{
@@ -246,17 +359,51 @@ body.login{
   margin:0 auto;
 }
 
-/* ===== RESPONSIVE ===== */
+/* BRAND */
+.dot{
+  display:inline-block;
+  width:8px;
+  height:8px;
+  border-radius:50%;
+  background:var(--accent);
+  margin-right:6px;
+  vertical-align:middle;
+}
 
-@media (max-width:1000px){
+.brand{
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
+
+.link{
+  color:var(--accent);
+}
+
+/* RESPONSIVE */
+@media(max-width:1000px){
   .three-panels{
     grid-template-columns:1fr;
+    min-height:auto;
+  }
+
+  .previewStack{
+    min-height:420px;
+  }
+
+  #threeCanvas{
+    min-height:420px;
   }
 }
 
-@media (max-width:520px){
+@media(max-width:520px){
   .card{
     width:calc(100% - 32px);
+    padding:28px;
+  }
+
+  .topbar{
+    gap:12px;
   }
 
   .btn{
