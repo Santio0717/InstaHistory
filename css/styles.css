@@ -49,25 +49,32 @@ text-align:center;
 width:100%;
 }
 
+/* FORM */
+
 .form{
 display:flex;
 flex-direction:column;
-gap:14px;
+gap:16px;
+width:100%;
+}
+
+.field{
+display:flex;
+flex-direction:column;
+gap:6px;
 width:100%;
 }
 
 .form label{
-width:100%;
-text-align:left;
-margin-bottom:2px;
+font-size:13px;
+color:var(--muted);
+margin-bottom:4px;
 }
 
-.form input{
-width:100%;
-}
+/* INPUTS */
 
 input{
-padding:12px;
+padding:12px 16px; /* 👈 FIX TEXTO PEGADO */
 border-radius:10px;
 border:none;
 background:#0f172a;
@@ -78,15 +85,20 @@ width:100%;
 /* BOTONES */
 
 .btn{
-padding:12px;
+padding:12px 16px;
 border-radius:10px;
 border:none;
 background:var(--accent);
 cursor:pointer;
-width:100%;
 font-weight:500;
 text-align:center;
 white-space:nowrap;
+transition:all 0.2s ease;
+}
+
+.btn:hover{
+transform:translateY(-2px);
+opacity:0.9;
 }
 
 .btn + .btn{
@@ -104,7 +116,7 @@ padding:15px 20px;
 
 .actions{
 display:flex;
-gap:10px;
+gap:12px;
 }
 
 .btn.secondary{
@@ -157,6 +169,11 @@ gap:12px;
 position:relative;
 }
 
+.stack.row-gap{
+margin-top:12px;
+gap:12px;
+}
+
 .content-panel{
 display:none;
 }
@@ -203,29 +220,28 @@ min-width:0;
 margin:8px 0 12px;
 }
 
-.row.wrap{
-display:flex;
-flex-wrap:wrap;
-gap:10px;
-justify-content:center;
-}
-
-.row.wrap .btn{
-width:auto;
-min-width:150px;
-}
-
-.row-gap{
-flex-direction:row;
-flex-wrap:wrap;
-}
-
 .label{
 font-size:13px;
 color:var(--muted);
 }
 
-/* SUBTITULOS */
+/* BOTONES FILA */
+
+.row.wrap{
+display:flex;
+flex-wrap:wrap;
+gap:12px;
+justify-content:center;
+margin-top:10px;
+}
+
+.row.wrap .btn{
+width:auto;
+min-width:140px;
+padding:10px 16px;
+}
+
+/* SUBTÍTULOS */
 
 .subtitle-box{
 min-height:3.2em;
@@ -272,7 +288,7 @@ padding:10px;
 box-shadow:0 10px 40px rgba(0,0,0,0.6);
 }
 
-/* CANVAS ARREGLADO */
+/* CANVAS */
 
 #threeCanvas{
 display:block;
@@ -289,8 +305,6 @@ z-index:2;
 
 .preview-subtitle{
 width:100%;
-margin-top:0;
-flex-shrink:0;
 text-align:center;
 }
 
@@ -303,7 +317,7 @@ object-fit:contain;
 background:#0f172a;
 }
 
-/* TEXTOS */
+/* TEXTO */
 
 .badge-center{
 text-align:center;
@@ -320,42 +334,15 @@ color:#fca5a5;
 font-size:14px;
 }
 
-/* LOGIN EXTRA */
-
-.login-page{
-min-height:100vh;
-display:flex;
-flex-direction:column;
-}
-
-.login-wrap{
-flex:1;
-display:flex;
-align-items:center;
-justify-content:center;
-padding:20px;
-}
-
-.foot-login{
-margin-top:16px;
-font-size:13px;
-line-height:1.4;
-}
-
-.foot-login code{
-font-size:12px;
-}
-
 /* BRAND */
 
 .dot{
-display:inline-block;
 width:8px;
 height:8px;
 border-radius:50%;
 background:var(--accent);
 margin-right:6px;
-vertical-align:middle;
+display:inline-block;
 }
 
 .brand{
@@ -400,10 +387,10 @@ justify-content:center;
 
 #qrcode canvas,
 #qrcode img{
-display:block;
 width:220px;
 height:220px;
 border-radius:12px;
+display:block;
 }
 
 .qrImage{
