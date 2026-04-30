@@ -1,13 +1,10 @@
 const video = document.getElementById("introVideo");
 
-// guardar que ya pasó por intro
-sessionStorage.setItem("introPlayed", "true");
-
 video.addEventListener("ended", () => {
+  sessionStorage.setItem("introPlayed", "true");
   window.location.href = "preview.html";
 });
 
-// fallback si falla
 video.addEventListener("error", () => {
-  window.location.href = "preview.html";
+  alert("No se pudo cargar el video.");
 });
