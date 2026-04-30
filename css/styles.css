@@ -25,19 +25,38 @@ body.bg{
   color:var(--text);
 }
 
-/* ===== LOGIN / FORMULARIOS ===== */
+/* ===== LAYOUT GENERAL (IMPORTANTE) ===== */
 
-body.login,
 .login-page{
-  display:flex;
-  justify-content:center;
-  align-items:center;
   min-height:100vh;
+  display:flex;
   flex-direction:column;
 }
 
-.login-wrap{
+/* 🔥 NO CENTRAR TODO EL BODY (arregla tu error) */
+body.login{
+  min-height:100vh;
+}
+
+/* ===== TOPBAR (ARRIBA FIJO VISUALMENTE) ===== */
+
+.topbar{
   width:100%;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:15px 20px;
+}
+
+.actions{
+  display:flex;
+  gap:10px;
+}
+
+/* ===== CONTENEDOR CENTRAL ===== */
+
+.login-wrap{
+  flex:1;
   display:flex;
   justify-content:center;
   align-items:center;
@@ -67,7 +86,7 @@ body.login,
   gap:18px;
 }
 
-/* 🔥 CLAVE: separación SIEMPRE */
+/* 🔥 SEPARACIÓN CORRECTA */
 
 .field{
   display:flex;
@@ -132,20 +151,6 @@ input{
   background:transparent;
   color:#fca5a5;
   border:1px solid #b91c1c;
-}
-
-/* ===== TOPBAR ===== */
-
-.topbar{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  padding:15px 20px;
-}
-
-.actions{
-  display:flex;
-  gap:10px;
 }
 
 /* ===== PANEL ADMIN ===== */
