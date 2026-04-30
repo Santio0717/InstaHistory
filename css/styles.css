@@ -13,7 +13,7 @@
   font-family:system-ui;
 }
 
-/* ===== FIX GLOBAL ===== */
+/* ===== BASE ===== */
 
 html, body{
   height:100%;
@@ -22,41 +22,35 @@ html, body{
 
 body{
   overflow-x:hidden;
-  background:#0b1020; /* 🔥 evita franja gris */
+  background:#0b1020;
 }
 
 body.bg{
   min-height:100vh;
-  display:flex;
-  flex-direction:column;
   background:radial-gradient(circle at top left,#1f2a44,#0b1020);
   color:var(--text);
 }
 
-/* 🔥 CLAVE PARA QUE NO SE CORTE */
-main{
-  flex:1;
-  display:flex;
-}
-
-/* ===== LOGIN ===== */
+/* ===== LOGIN (AISLADO) ===== */
 
 body.login{
+  display:flex;
   justify-content:center;
   align-items:center;
+  min-height:100vh;
 }
 
-.login-page{
-  min-height:100vh;
-  display:flex;
-  flex-direction:column;
+/* 🔥 evita que main rompa login */
+body.login main{
+  display:block;
+  flex:none;
 }
 
 .login-wrap{
-  flex:1;
+  width:100%;
   display:flex;
-  align-items:center;
   justify-content:center;
+  align-items:center;
   padding:20px;
 }
 
@@ -157,7 +151,7 @@ input[type="range"]:disabled{
 /* ===== ADMIN ===== */
 
 .three-panels{
-  flex:1; /* 🔥 FIX PRINCIPAL */
+  min-height:calc(100vh - 70px);
   display:grid;
   grid-template-columns:220px 350px 1fr;
   gap:20px;
@@ -256,7 +250,7 @@ input[type="range"]:disabled{
   width:100%;
 }
 
-/* ===== QR CENTRADO ===== */
+/* ===== QR ===== */
 
 .card.wide{
   max-width:560px;
