@@ -1,12 +1,10 @@
 <!doctype html>
-
 <html lang="es">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>InstaHistory — QR</title>
   <link rel="stylesheet" href="css/styles.css" />
-  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
 </head>
 
 <body class="bg">
@@ -17,12 +15,6 @@
     <strong>InstaHistory</strong>
     <span class="muted">| QR</span>
   </div>
-
-  <nav class="actions">
-    <a class="btn secondary" href="qr.html">Ir a QR</a>
-    <a class="btn secondary" href="experience.html">Volver</a>
-    <button type="button" class="btn danger" id="btnQrLogout">Salir</button>
-  </nav>
 </header>
 
 <main class="card wide qr-main">
@@ -30,33 +22,32 @@
 
   <div class="qrBox">
 
-<!-- QR centrado -->
-<div id="qrcode"></div>
+    <div id="qrcode"></div>
 
-<p class="muted small">
-  Escanea el QR para abrir la experiencia en tu celular.
-</p>
+    <p class="muted small">
+      Escanea el QR para abrir la experiencia en tu celular.
+    </p>
 
-<a 
-  class="link" 
-  href="https://linktr.ee/sanagustin_experiencia" 
-  target="_blank" 
-  rel="noopener">
-  Abrir contenido
-</a>
+    <a 
+      class="link" 
+      href="https://linktr.ee/sanagustin_experiencia" 
+      target="_blank">
+      Abrir contenido
+    </a>
 
+    <!-- BOTÓN SONIDO -->
+    <button id="toggleSound" class="btn secondary" style="margin-top:15px;">
+      🔊 Sonido activado
+    </button>
 
   </div>
 </main>
 
+<audio id="bgSound" src="audio/fondo-qr.mp3" loop></audio>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
-<script type="module">
-  import { logout } from "./js/state.js";
-
-  document.getElementById("btnQrLogout")
-    .addEventListener("click", () => logout());
-
+<script>
   const linktreeURL = "https://linktr.ee/sanagustin_experiencia";
 
   new QRCode(document.getElementById("qrcode"), {
@@ -64,8 +55,32 @@
     width: 220,
     height: 220
   });
+
+  const audio = document.getElementById("bgSound");
+  const btn = document.getElementById("toggleSound");
+
+  let isPlaying = true;
+
+  window.addEventListener("load", () => {
+    audio.volume = 0.3;
+    audio.play().catch(()=>{});
+  });
+
+  document.addEventListener("click", () => {
+    audio.play();
+  }, { once: true });
+
+  btn.addEventListener("click", () => {
+    if(isPlaying){
+      audio.pause();
+      btn.textContent = "🔇 Sonido desactivado";
+    } else {
+      audio.play();
+      btn.textContent = "🔊 Sonido activado";
+    }
+    isPlaying = !isPlaying;
+  });
 </script>
 
 </body>
 </html>
-
