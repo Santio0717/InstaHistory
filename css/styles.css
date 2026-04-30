@@ -96,6 +96,20 @@ input{
   outline:none;
 }
 
+input[type="range"]:disabled{
+  opacity:0.55;
+}
+
+/* 🔥 INPUT FILE OCULTO (COMO ANTES) */
+.file-input{
+  position:absolute;
+  left:-9999px;
+  width:1px;
+  height:1px;
+  opacity:0;
+  overflow:hidden;
+}
+
 /* ===== BOTONES ===== */
 
 .btn{
@@ -111,6 +125,10 @@ input{
 
 .btn.secondary{ background:#334155; }
 .btn.danger{ background:#b91c1c; }
+
+.btn-active{
+  outline:2px solid var(--accent);
+}
 
 /* ===== TOPBAR ===== */
 
@@ -148,7 +166,7 @@ input{
   gap:16px;
 }
 
-/* ===== BOTONES MENU ===== */
+/* ===== MENÚ ===== */
 
 .stack{
   display:grid;
@@ -166,6 +184,7 @@ input{
 /* ===== CONTENIDO ===== */
 
 .content-panel{ display:none; }
+
 .content-panel.active-panel{
   display:flex;
   flex-direction:column;
@@ -228,7 +247,7 @@ input{
   width:100%;
 }
 
-/* ===== QR (🔥 CORREGIDO) ===== */
+/* ===== QR CENTRADO ===== */
 
 .card.wide{
   max-width:560px;
@@ -236,7 +255,6 @@ input{
   margin:20px auto;
 }
 
-/* 🔥 CENTRADO TOTAL */
 .qr-main{
   display:flex;
   flex-direction:column;
@@ -270,5 +288,10 @@ input{
 @media (max-width:520px){
   .card{
     width:calc(100% - 32px);
+  }
+
+  .btn{
+    font-size:13px;
+    padding:10px;
   }
 }
