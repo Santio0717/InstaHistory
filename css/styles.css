@@ -27,20 +27,27 @@ body{
 
 body.bg{
   min-height:100vh;
+  display:flex;
+  flex-direction:column;
   background:radial-gradient(circle at top left,#1f2a44,#0b1020);
   color:var(--text);
 }
 
-/* ===== LOGIN (AISLADO) ===== */
+/* ===== MAIN FIX (NO CORTES) ===== */
+
+main{
+  flex:1;
+  display:flex;
+}
+
+/* ===== LOGIN ===== */
 
 body.login{
   display:flex;
   justify-content:center;
   align-items:center;
-  min-height:100vh;
 }
 
-/* 🔥 evita que main rompa login */
 body.login main{
   display:block;
   flex:none;
@@ -99,10 +106,6 @@ input{
   outline:none;
 }
 
-input[type="range"]:disabled{
-  opacity:0.55;
-}
-
 /* 🔥 INPUT FILE OCULTO */
 .file-input{
   position:absolute;
@@ -151,7 +154,7 @@ input[type="range"]:disabled{
 /* ===== ADMIN ===== */
 
 .three-panels{
-  min-height:calc(100vh - 70px);
+  flex:1;
   display:grid;
   grid-template-columns:220px 350px 1fr;
   gap:20px;
@@ -234,7 +237,7 @@ input[type="range"]:disabled{
   height:100%;
 }
 
-/* ===== PREVIEW PÚBLICO ===== */
+/* ===== PREVIEW ESTUDIANTE ===== */
 
 .preview-body{
   min-height:100vh;
@@ -247,7 +250,31 @@ input[type="range"]:disabled{
   max-width:960px;
   margin:0 auto;
   padding:20px;
+  padding-bottom:50px; /* 🔥 FIX */
   width:100%;
+}
+
+/* ===== CONTROLES ESTUDIANTE ===== */
+
+.student-controls{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  justify-content:center;
+  margin-top:16px;
+  margin-bottom:20px;
+}
+
+.student-controls .btn{
+  padding:10px 14px;
+  border-radius:20px;
+}
+
+.student-subtitle{
+  margin-top:12px;
+  margin-bottom:30px;
+  text-align:center;
+  line-height:1.5;
 }
 
 /* ===== QR ===== */
@@ -270,7 +297,6 @@ input[type="range"]:disabled{
   display:flex;
   flex-direction:column;
   align-items:center;
-  justify-content:center;
 }
 
 .qrImage{
