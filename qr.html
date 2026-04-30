@@ -1,4 +1,5 @@
 <!doctype html>
+
 <html lang="es">
 <head>
   <meta charset="utf-8" />
@@ -15,6 +16,10 @@
     <strong>InstaHistory</strong>
     <span class="muted">| QR</span>
   </div>
+
+  <nav class="actions">
+    <a class="btn secondary" href="experience.html">Volver</a>
+  </nav>
 </header>
 
 <main class="card wide qr-main">
@@ -22,23 +27,34 @@
 
   <div class="qrBox">
 
-    <div id="qrcode"></div>
 
-    <p class="muted small">
-      Escanea el QR para abrir la experiencia en tu celular.
-    </p>
+<div id="qrcode"></div>
 
-    <a 
-      class="link" 
-      href="https://linktr.ee/sanagustin_experiencia" 
-      target="_blank">
-      Abrir contenido
-    </a>
+<p class="muted small">
+  Escanea el QR para abrir la experiencia en tu celular.
+</p>
 
-    <!-- BOTÓN SONIDO -->
-    <button id="toggleSound" class="btn secondary" style="margin-top:15px;">
-      🔊 Sonido activado
-    </button>
+<a class="link" href="https://linktr.ee/sanagustin_experiencia" target="_blank">
+  Abrir contenido
+</a>
+
+<div style="margin-top:20px; text-align:center;">
+  <button id="toggleSound" class="btn secondary">
+    🔊 Sonido activado
+  </button>
+
+  <div style="margin-top:10px;">
+    <input 
+      type="range" 
+      id="volumeControl" 
+      min="0" 
+      max="1" 
+      step="0.1" 
+      value="0.3"
+      style="width:200px;">
+  </div>
+</div>
+
 
   </div>
 </main>
@@ -58,16 +74,22 @@
 
   const audio = document.getElementById("bgSound");
   const btn = document.getElementById("toggleSound");
+  const volumeControl = document.getElementById("volumeControl");
 
-  let isPlaying = true;
+  let isPlaying = false;
 
   window.addEventListener("load", () => {
     audio.volume = 0.3;
-    audio.play().catch(()=>{});
+    audio.play().then(() => {
+      isPlaying = true;
+    }).catch(()=>{});
   });
 
   document.addEventListener("click", () => {
-    audio.play();
+    if(!isPlaying){
+      audio.play();
+      isPlaying = true;
+    }
   }, { once: true });
 
   btn.addEventListener("click", () => {
@@ -79,6 +101,10 @@
       btn.textContent = "🔊 Sonido activado";
     }
     isPlaying = !isPlaying;
+  });
+
+  volumeControl.addEventListener("input", (e) => {
+    audio.volume = e.target.value;
   });
 </script>
 
