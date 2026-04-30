@@ -27,26 +27,13 @@
 
 <body class="bg">
 
-<!-- ===== VIDEO ===== -->
 <div id="introOverlay">
   <video id="introVideo" autoplay muted playsinline>
     <source src="animacion/animacion-inicial.mp4" type="video/mp4">
   </video>
 </div>
 
-<script>
-const video = document.getElementById("introVideo");
-
-// 🔥 cuando termina → redirige
-video.addEventListener("ended", () => {
-  window.location.href = "preview.html";
-});
-
-// 🔥 fallback por si falla el evento
-setTimeout(() => {
-  window.location.href = "preview.html";
-}, 10000);
-</script>
+<script src="js/videoIntro.js"></script>
 
 </body>
 </html>
