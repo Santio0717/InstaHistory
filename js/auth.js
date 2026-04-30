@@ -5,10 +5,6 @@ function setSession(user) {
   localStorage.setItem("ih_session", JSON.stringify(user));
 }
 
-function go() {
-  window.location.href = "experience.html";
-}
-
 form?.addEventListener("submit", (e) => {
   e.preventDefault();
   err.textContent = "";
@@ -26,11 +22,24 @@ form?.addEventListener("submit", (e) => {
     return;
   }
 
+  // 🔥 DEFINIR ROL
+  let role = "student";
+
+  // 👉 si quieres admin por correo específico
+  if (email === "admin@uao.edu.co") {
+    role = "admin";
+  }
+
   setSession({
     email,
-    role: "admin",
+    role,
     ts: Date.now()
   });
 
-  go();
+  // 🔥 REDIRECCIÓN CORRECTA
+  if (role === "admin") {
+    window.location.href = "experience.html";
+  } else {
+    window.location.href = "experienceusuario.html"; // 👉 aquí está el video
+  }
 });
