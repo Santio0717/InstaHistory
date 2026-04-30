@@ -22,23 +22,24 @@ background: radial-gradient(circle at top left,#1f2a44,#0b1020);
 color:var(--text);
 }
 
-/* ===== LOGIN BIEN POSICIONADO ===== */
+/* ===== LOGIN CENTRADO CORRECTAMENTE ===== */
 
 body.login{
 display:flex;
-flex-direction:column;
+justify-content:center;
+align-items:center; /* 👈 centrado vertical REAL */
+min-height:100vh;
 }
 
 .login-wrap{
 width:100%;
 display:flex;
 justify-content:center;
-align-items:flex-start; /* 👈 NO centrado vertical total */
-padding-top:100px; /* 👈 BAJA el login */
-padding-bottom:40px;
+align-items:center; /* 👈 centrado completo */
+padding:20px;
 }
 
-/* TARJETA */
+/* ===== TARJETA ===== */
 
 .card{
 width:100%;
@@ -49,40 +50,47 @@ background:rgba(30,43,74,.6);
 backdrop-filter:blur(10px);
 display:flex;
 flex-direction:column;
-gap:22px;
-margin:0 auto;
+gap:20px;
 }
 
-/* TEXTOS */
+/* ===== TEXTOS ===== */
 
-.card h1,
+.card h1{
+text-align:center;
+font-size:28px;
+}
+
 .card p{
 text-align:center;
+font-size:14px;
+color:var(--muted);
 }
 
-/* FORM */
+/* ===== FORM ===== */
 
 .form{
 display:flex;
 flex-direction:column;
-gap:18px;
+gap:20px;
 width:100%;
 }
 
 .field{
 display:flex;
 flex-direction:column;
-gap:10px;
+gap:6px; /* 👈 separación label-input */
 width:100%;
 }
+
+/* ===== LABELS ===== */
 
 .form label{
 font-size:13px;
 color:var(--muted);
-margin-bottom:4px;
+margin-bottom:2px; /* 👈 separación extra */
 }
 
-/* INPUTS */
+/* ===== INPUTS ===== */
 
 input{
 padding:14px 16px;
@@ -92,9 +100,10 @@ background:#0f172a;
 color:white;
 width:100%;
 outline:none;
+font-size:14px;
 }
 
-/* BOTONES LOGIN */
+/* ===== BOTONES ===== */
 
 .btn{
 padding:12px 16px;
@@ -106,6 +115,7 @@ font-weight:500;
 text-align:center;
 white-space:nowrap;
 transition:all 0.2s ease;
+color:#fff;
 }
 
 .btn:hover{
@@ -116,6 +126,13 @@ opacity:0.9;
 .btn.full{
 width:100%;
 margin-top:10px;
+}
+
+/* ===== BOTÓN SECUNDARIO (ESTUDIANTE) ===== */
+
+.btn.secondary{
+background:#334155;
+color:var(--text);
 }
 
 /* ===== TOPBAR ===== */
@@ -132,23 +149,12 @@ display:flex;
 gap:12px;
 }
 
-.btn.secondary{
-background:#334155;
-color:var(--text);
-}
-
 .btn.danger{
 background:#b91c1c;
 color:#fff;
 }
 
-.btn.danger-outline{
-background:transparent;
-color:#fca5a5;
-border:1px solid #b91c1c;
-}
-
-/* ===== PANEL ADMIN ===== */
+/* ===== RESTO (SIN CAMBIOS IMPORTANTES) ===== */
 
 .three-panels{
 display:grid;
@@ -172,18 +178,11 @@ background:var(--card);
 border-radius:20px;
 }
 
-/* ELEMENTOS */
-
 .stack{
 display:flex;
 flex-direction:column;
 gap:12px;
 align-items:flex-start;
-}
-
-.stack.row-gap{
-margin-top:12px;
-gap:12px;
 }
 
 .content-panel{
@@ -198,8 +197,6 @@ display:block;
 outline:2px solid var(--accent);
 }
 
-/* FILE INPUT */
-
 .file-input{
 position:absolute;
 left:-9999px;
@@ -207,8 +204,6 @@ width:1px;
 height:1px;
 opacity:0;
 }
-
-/* TEXTOS */
 
 .h2{
 font-size:1.05rem;
@@ -225,51 +220,6 @@ font-size:13px;
 color:var(--muted);
 }
 
-/* BOTONES IZQUIERDA */
-
-.row.wrap{
-display:flex;
-flex-wrap:wrap;
-gap:12px;
-justify-content:flex-start;
-margin-top:10px;
-}
-
-.row.wrap .btn{
-width:auto;
-min-width:140px;
-padding:10px 16px;
-}
-
-/* SUBTÍTULOS */
-
-.subtitle-box{
-min-height:3.2em;
-padding:12px;
-border-radius:10px;
-background:#0f172a;
-font-size:14px;
-line-height:1.4;
-}
-
-/* ===== PREVIEW ===== */
-
-.preview-column{
-padding:20px;
-display:flex;
-flex-direction:column;
-align-items:center;
-}
-
-.preview-flow{
-display:flex;
-flex-direction:column;
-gap:16px;
-align-items:center;
-}
-
-/* CONTENEDOR MODELO */
-
 .previewStack{
 position:relative;
 width:100%;
@@ -285,25 +235,12 @@ padding:10px;
 box-shadow:0 10px 40px rgba(0,0,0,0.6);
 }
 
-/* CANVAS */
-
 #threeCanvas{
 display:block;
 width:100%;
 height:100%;
 border-radius:12px;
 }
-
-/* TEXTO */
-
-.badge{
-font-size:12px;
-color:var(--muted);
-text-align:center;
-margin-top:10px;
-}
-
-/* BRAND */
 
 .dot{
 width:8px;
@@ -320,8 +257,6 @@ align-items:center;
 gap:6px;
 }
 
-/* ===== QR ===== */
-
 .card.wide{
 max-width:560px;
 width:calc(100% - 40px);
@@ -333,15 +268,6 @@ display:flex;
 flex-direction:column;
 align-items:center;
 justify-content:center;
-}
-
-.qrBox{
-display:flex;
-flex-direction:column;
-align-items:center;
-text-align:center;
-margin-top:16px;
-width:100%;
 }
 
 #qrcode{
