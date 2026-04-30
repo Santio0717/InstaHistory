@@ -66,28 +66,9 @@ body.login{
   box-shadow:0 18px 48px rgba(0,0,0,.35);
 }
 
-.login-brand{
-  display:flex;
-  align-items:center;
-  gap:14px;
-  margin-bottom:22px;
-}
+/* ===== FORM ===== */
 
-.login-brand h1{
-  font-size:1.35rem;
-  margin:0;
-}
-
-.login-tagline{
-  margin:4px 0 0;
-  font-size:13px;
-}
-
-.form{
-  display:grid;
-  gap:18px;
-}
-
+.form,
 .form-login{
   display:grid;
   gap:18px;
@@ -96,10 +77,6 @@ body.login{
 .form-login label{
   display:grid;
   gap:8px;
-}
-
-.form-login .label{
-  display:block;
 }
 
 .field{
@@ -119,11 +96,6 @@ input{
   outline:none;
 }
 
-input[type="range"]:disabled{
-  opacity:0.55;
-  cursor:not-allowed;
-}
-
 /* ===== BOTONES ===== */
 
 .btn{
@@ -137,41 +109,8 @@ input[type="range"]:disabled{
   text-align:center;
 }
 
-.btn:hover{
-  opacity:.92;
-}
-
-.btn.secondary{
-  background:#334155;
-  color:var(--text);
-}
-
-.btn.danger{
-  background:#b91c1c;
-  color:#fff;
-}
-
-.btn.danger-outline{
-  background:transparent;
-  color:#fca5a5;
-  border:1px solid #b91c1c;
-}
-
-.btn-active,
-.menu-btn.active{
-  outline:2px solid var(--accent);
-}
-
-.btn-block{
-  width:100%;
-  margin-top:4px;
-}
-
-.small{
-  color:var(--accent);
-  margin-top:10px;
-  display:block;
-}
+.btn.secondary{ background:#334155; }
+.btn.danger{ background:#b91c1c; }
 
 /* ===== TOPBAR ===== */
 
@@ -199,88 +138,41 @@ input[type="range"]:disabled{
   align-items:stretch;
 }
 
-.hud{
+.hud,
+.canvasWrap{
   background:var(--card);
   padding:20px;
   border-radius:20px;
   display:flex;
   flex-direction:column;
   gap:16px;
-  min-height:100%;
 }
 
-.canvasWrap{
-  background:var(--card);
-  border-radius:20px;
-  display:flex;
-  flex-direction:column;
-  min-height:100%;
-}
-
-.hud-col{
-  min-width:0;
-}
-
-/* ===== STACKS ===== */
+/* ===== BOTONES MENU ===== */
 
 .stack{
   display:grid;
   gap:12px;
-  position:relative;
 }
 
-.stack .btn,
-.stack .file-label{
+.stack .btn{
   width:100%;
-  min-height:42px;
+  height:44px;
   display:flex;
   align-items:center;
   justify-content:center;
 }
 
-/* ===== PANELES INTERNOS ===== */
+/* ===== CONTENIDO ===== */
 
-.content-panel{
-  display:none;
-}
-
+.content-panel{ display:none; }
 .content-panel.active-panel{
   display:flex;
   flex-direction:column;
   gap:16px;
 }
 
-/* ===== FILE INPUT ===== */
-
-.btn.file-label,
-label.file-label{
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  text-align:center;
-  cursor:pointer;
-}
-
-.file-input{
-  position:absolute;
-  left:-9999px;
-  width:1px;
-  height:1px;
-  opacity:0;
-  overflow:hidden;
-}
-
 /* ===== TEXTOS ===== */
-
-.h2{
-  font-size:1.05rem;
-  margin-bottom:10px;
-  font-weight:600;
-}
-
-.h2-center{
-  text-align:center;
-}
 
 .label{
   font-size:13px;
@@ -288,24 +180,7 @@ label.file-label{
   margin-bottom:6px;
 }
 
-.muted{
-  color:var(--muted);
-}
-
-.muted-inline{
-  font-size:.85em;
-  font-weight:400;
-  color:var(--muted);
-}
-
-.small-gap{
-  margin:8px 0 12px;
-}
-
-.error{
-  color:#fca5a5;
-  font-size:14px;
-}
+.muted{ color:var(--muted); }
 
 /* ===== FILAS ===== */
 
@@ -315,146 +190,29 @@ label.file-label{
   gap:12px;
 }
 
-.row-gap{
-  flex-direction:row;
-  flex-wrap:wrap;
-}
-
-/* ===== SUBTÍTULOS ===== */
-
-.subtitle-box{
-  min-height:3.2em;
-  padding:12px;
-  border-radius:10px;
-  background:#0f172a;
-  font-size:14px;
-  line-height:1.4;
-}
-
-/* ===== AUDIOS ===== */
-
-#panel-audios .modelsList{
-  border:1px solid rgba(255,255,255,.08);
-  border-radius:12px;
-  padding:8px;
-  background:rgba(9,14,28,.55);
-}
-
-#panel-audios .file-label,
-#panel-audios .row.wrap .btn,
-#panel-audios .stack.row-gap .btn{
-  width:100%;
-}
-
-#panel-audios .stack{
-  gap:12px;
-}
-
-#panel-audios .row.wrap{
-  display:grid;
-  grid-template-columns:1fr;
-  gap:10px;
-  margin-top:4px;
-}
-
-#panel-audios .row.wrap .btn{
-  padding:10px 12px;
-  border:1px solid rgba(255,255,255,.12);
-  background:#28354f;
-}
-
-#panel-audios .stack.row-gap{
-  margin-top:8px;
-  gap:10px;
-}
-
-#panel-audios #playAudio{
-  box-shadow:0 6px 16px rgba(84,148,255,.28);
-}
-
-#panel-audios .subtitle-box{
-  margin-top:10px;
-  border:1px solid rgba(255,255,255,.08);
-}
-
-/* ===== ANIMACIONES ===== */
-
-.mini-controls{
-  margin-top:12px;
-  padding-top:12px;
-  border-top:1px solid rgba(255,255,255,.08);
-}
-
-.small-label{
-  font-size:12px;
-  padding:8px 10px;
-}
-
 /* ===== PREVIEW ADMIN ===== */
 
 .preview-column{
-  padding:20px;
   display:flex;
   flex-direction:column;
   gap:12px;
   height:100%;
 }
 
-.preview-flow{
-  display:flex;
-  flex-direction:column;
-  gap:12px;
-  flex:1;
-  min-width:0;
-}
-
 .previewStack{
-  position:relative;
   flex:1;
-  min-height:min(65vh,520px);
-  width:100%;
+  min-height:500px;
   background:#000;
   border-radius:16px;
   overflow:hidden;
 }
 
 #threeCanvas{
-  display:block;
   width:100%;
   height:100%;
-  min-height:min(65vh,520px);
 }
 
-.preview-layer{
-  position:absolute;
-  inset:0;
-  width:100%;
-  height:100%;
-  object-fit:contain;
-  background:#0f172a;
-}
-
-.preview-layer-top{
-  z-index:2;
-}
-
-.preview-subtitle{
-  width:100%;
-  margin-top:0;
-  flex-shrink:0;
-}
-
-.badge{
-  font-size:12px;
-  color:var(--muted);
-}
-
-.badge-center{
-  text-align:center;
-  margin-top:10px;
-}
-
-/* ===== PREVIEW PÚBLICA / ESTUDIANTE ===== */
+/* ===== PREVIEW PÚBLICO ===== */
 
 .preview-body{
   min-height:100vh;
@@ -462,41 +220,15 @@ label.file-label{
   flex-direction:column;
 }
 
-.preview-body .preview-only-main{
-  flex:1;
-}
-
 .preview-only-main{
+  flex:1;
   max-width:960px;
   margin:0 auto;
   padding:20px;
-  flex:1;
   width:100%;
 }
 
-.preview-stack-large{
-  min-height:min(72vh,600px);
-}
-
-/* ===== STUDENT ===== */
-
-.student-controls{
-  display:flex;
-  flex-wrap:wrap;
-  gap:10px;
-  margin-top:14px;
-  justify-content:center;
-}
-
-.student-controls[hidden]{
-  display:none !important;
-}
-
-.student-subtitle{
-  margin-top:14px;
-}
-
-/* ===== QR ===== */
+/* ===== QR (🔥 CORREGIDO) ===== */
 
 .card.wide{
   max-width:560px;
@@ -504,96 +236,27 @@ label.file-label{
   margin:20px auto;
 }
 
+/* 🔥 CENTRADO TOTAL */
 .qr-main{
-  margin-top:0;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
 }
 
 .qrBox{
-  text-align:center;
-  margin-top:16px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
 }
 
 .qrImage{
   max-width:260px;
   border-radius:12px;
-}
-
-/* ===== BRAND ===== */
-
-.dot{
-  display:inline-block;
-  width:8px;
-  height:8px;
-  border-radius:50%;
-  background:var(--accent);
-  margin-right:6px;
-  vertical-align:middle;
-}
-
-.dot-lg{
-  width:12px;
-  height:12px;
-  margin-right:0;
-}
-
-.brand{
-  display:flex;
-  align-items:center;
-  gap:6px;
-}
-
-/* ===== LINKS ===== */
-
-.link{
-  color:var(--accent);
-}
-
-.link-inline{
-  color:var(--accent);
-  text-decoration:underline;
-  text-underline-offset:3px;
-}
-
-.link-inline:hover{
-  opacity:.9;
-}
-
-/* ===== LISTAS ===== */
-
-.modelsList{
-  display:flex;
-  flex-direction:column;
-  gap:8px;
-  max-height:200px;
-  overflow:auto;
-  margin:8px 0 12px;
-  padding:4px 2px;
-}
-
-.modelItem{
-  text-align:left;
-  justify-content:flex-start;
-  width:100%;
-}
-
-/* ===== FOOTER LOGIN ===== */
-
-.foot-login{
-  margin-top:16px;
-  font-size:13px;
-  line-height:1.4;
-}
-
-.foot-login code{
-  font-size:12px;
-}
-
-.login-footnote{
-  margin-top:20px;
-  font-size:12px;
-  line-height:1.45;
-  color:var(--muted);
-  text-align:center;
+  display:block;
+  margin:0 auto;
 }
 
 /* ===== RESPONSIVE ===== */
@@ -601,36 +264,11 @@ label.file-label{
 @media (max-width:1000px){
   .three-panels{
     grid-template-columns:1fr;
-    min-height:auto;
-  }
-
-  .hud,
-  .canvasWrap{
-    min-height:auto;
-  }
-
-  .previewStack{
-    min-height:420px;
   }
 }
 
 @media (max-width:520px){
   .card{
     width:calc(100% - 32px);
-    padding:28px;
-  }
-
-  .topbar{
-    align-items:flex-start;
-    gap:12px;
-  }
-
-  .actions{
-    gap:8px;
-  }
-
-  .btn{
-    padding:10px;
-    font-size:13px;
   }
 }
