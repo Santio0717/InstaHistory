@@ -52,14 +52,14 @@ width:100%;
 .form{
 display:flex;
 flex-direction:column;
-gap:14px; /* 👈 mejor equilibrio */
+gap:14px;
 width:100%;
 }
 
 .form label{
 width:100%;
 text-align:left;
-margin-bottom:2px; /* 👈 menos separación */
+margin-bottom:2px;
 }
 
 .form input{
@@ -86,11 +86,11 @@ cursor:pointer;
 width:100%;
 font-weight:500;
 text-align:center;
-white-space:nowrap; /* 👈 evita que se rompa texto */
+white-space:nowrap;
 }
 
 .btn + .btn{
-margin-top:6px; /* 👈 separación correcta entre botones */
+margin-top:6px;
 }
 
 /* TOPBAR */
@@ -110,7 +110,7 @@ gap:10px;
 .btn.secondary{
 background:#334155;
 color:var(--text);
-white-space:nowrap; /* 👈 FIX Ir a QR */
+white-space:nowrap;
 }
 
 .btn.danger{
@@ -129,10 +129,12 @@ border:1px solid #b91c1c;
 
 .three-panels{
 display:grid;
-grid-template-columns:220px 1fr 1.2fr;
+grid-template-columns:220px 1fr 1fr;
 gap:24px;
 padding:24px;
 align-items:start;
+max-width:1400px;
+margin:0 auto;
 }
 
 .hud{
@@ -204,7 +206,13 @@ margin:8px 0 12px;
 .row.wrap{
 display:flex;
 flex-wrap:wrap;
-gap:8px;
+gap:10px;
+justify-content:center;
+}
+
+.row.wrap .btn{
+width:auto;
+min-width:150px;
 }
 
 .row-gap{
@@ -235,25 +243,45 @@ padding:20px;
 display:flex;
 flex-direction:column;
 height:100%;
+align-items:center;
 }
 
 .preview-flow{
 display:flex;
 flex-direction:column;
-gap:12px;
+gap:16px;
 flex:1;
 min-width:0;
+align-items:center;
 }
+
+/* CONTENEDOR TIPO MUSEO */
 
 .previewStack{
 position:relative;
-flex:1;
-min-height:500px;
 width:100%;
+max-width:600px;
+height:520px;
+margin:0 auto;
 display:flex;
 align-items:center;
 justify-content:center;
+background:#000;
+border-radius:16px;
+padding:10px;
+box-shadow:0 10px 40px rgba(0,0,0,0.6);
 }
+
+/* CANVAS ARREGLADO */
+
+#threeCanvas{
+display:block;
+width:100%;
+height:100%;
+border-radius:12px;
+}
+
+/* CAPAS */
 
 .preview-layer-top{
 z-index:2;
@@ -263,13 +291,7 @@ z-index:2;
 width:100%;
 margin-top:0;
 flex-shrink:0;
-}
-
-#threeCanvas{
-display:block;
-width:100%;
-height:100%;
-object-fit:contain;
+text-align:center;
 }
 
 .preview-layer{
@@ -280,6 +302,8 @@ height:100%;
 object-fit:contain;
 background:#0f172a;
 }
+
+/* TEXTOS */
 
 .badge-center{
 text-align:center;
