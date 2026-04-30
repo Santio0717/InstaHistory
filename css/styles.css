@@ -22,25 +22,28 @@ background: radial-gradient(circle at top left,#1f2a44,#0b1020);
 color:var(--text);
 }
 
-body.login{
+/* ===== LOGIN FIX REAL ===== */
+
+.login-wrap{
+width:100%;
 display:flex;
 justify-content:center;
 align-items:center;
-height:100vh;
+min-height:100vh;
+padding:20px;
 }
 
-/* LOGIN */
-
 .card{
-width:360px;
+width:100%;
+max-width:380px;
 padding:30px;
 border-radius:20px;
 background:rgba(30,43,74,.6);
 backdrop-filter:blur(10px);
 display:flex;
 flex-direction:column;
-gap:20px;
-align-items:stretch; /* 👈 FIX */
+gap:22px;
+margin:0 auto;
 }
 
 .card h1,
@@ -53,28 +56,27 @@ text-align:center;
 .form{
 display:flex;
 flex-direction:column;
-gap:16px;
+gap:18px;
 width:100%;
 }
 
 .field{
 display:flex;
 flex-direction:column;
-gap:8px;
+gap:10px;
 width:100%;
 }
 
 .form label{
 font-size:13px;
 color:var(--muted);
-margin-bottom:6px;
-padding-left:2px;
+margin-bottom:4px;
 }
 
-/* INPUTS */
+/* INPUTS FIX */
 
 input{
-padding:12px 16px;
+padding:14px 16px;
 border-radius:10px;
 border:none;
 background:#0f172a;
@@ -83,7 +85,7 @@ width:100%;
 outline:none;
 }
 
-/* BOTONES */
+/* BOTÓN LOGIN */
 
 .btn{
 padding:12px 16px;
@@ -102,7 +104,12 @@ transform:translateY(-2px);
 opacity:0.9;
 }
 
-/* TOPBAR */
+.btn.full{
+width:100%;
+margin-top:10px;
+}
+
+/* ===== TOPBAR ===== */
 
 .topbar{
 display:flex;
@@ -132,7 +139,7 @@ color:#fca5a5;
 border:1px solid #b91c1c;
 }
 
-/* PANEL */
+/* ===== PANEL ===== */
 
 .three-panels{
 display:grid;
@@ -156,13 +163,13 @@ background:var(--card);
 border-radius:20px;
 }
 
-/* ELEMENTOS */
+/* ===== ELEMENTOS ===== */
 
 .stack{
 display:flex;
 flex-direction:column;
 gap:12px;
-align-items:flex-start; /* 👈 IZQUIERDA */
+align-items:flex-start;
 }
 
 .stack.row-gap{
@@ -221,13 +228,13 @@ font-size:13px;
 color:var(--muted);
 }
 
-/* BOTONES EN FILA (IZQUIERDA) */
+/* BOTONES IZQUIERDA */
 
 .row.wrap{
 display:flex;
 flex-wrap:wrap;
 gap:12px;
-justify-content:flex-start; /* 👈 FIX */
+justify-content:flex-start;
 margin-top:10px;
 }
 
@@ -237,7 +244,7 @@ min-width:140px;
 padding:10px 16px;
 }
 
-/* SUBTÍTULOS */
+/* ===== SUBTÍTULOS ===== */
 
 .subtitle-box{
 min-height:3.2em;
@@ -248,7 +255,7 @@ font-size:14px;
 line-height:1.4;
 }
 
-/* PREVIEW */
+/* ===== PREVIEW ===== */
 
 .preview-column{
 padding:20px;
@@ -267,7 +274,7 @@ min-width:0;
 align-items:center;
 }
 
-/* CONTENEDOR TIPO MUSEO */
+/* CONTENEDOR MUSEO */
 
 .previewStack{
 position:relative;
@@ -347,7 +354,7 @@ align-items:center;
 gap:6px;
 }
 
-/* QR */
+/* ===== QR ===== */
 
 .card.wide{
 max-width:560px;
@@ -398,4 +405,4 @@ display:block;
 
 .link{
 color:var(--accent);
-} 
+}
