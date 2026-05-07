@@ -17,10 +17,20 @@
     <span class="muted">| Estudiante</span>
   </div>
   <nav class="actions">
+    <button type="button" class="btn secondary" id="btnVerTestimonios">Ver testimonios</button>
     <a href="qr.html" class="btn secondary">Ir a QR</a>
     <button type="button" class="btn danger" id="btnLogout">Salir</button>
   </nav>
 </header>
+
+<div id="testimoniosModal" class="testimonios-modal" hidden>
+  <div class="testimonios-modal-backdrop" id="testimoniosModalBackdrop" role="presentation"></div>
+  <div class="testimonios-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="testimoniosModalTitle">
+    <button type="button" class="btn secondary small testimonios-modal-close" id="testimoniosModalClose">Cerrar</button>
+    <h2 id="testimoniosModalTitle" class="testimonios-modal-title">Testimonios</h2>
+    <div id="testimoniosModalBody" class="testimonios-modal-body"></div>
+  </div>
+</div>
 
 <div class="login-wrap">
   <main class="card">

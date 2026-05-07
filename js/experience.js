@@ -1,6 +1,6 @@
-import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.164/build/three.module.js";
-import { OBJLoader } from "https://cdn.jsdelivr.net/npm/three@0.164/examples/jsm/loaders/OBJLoader.js";
-import { GLTFLoader } from "https://cdn.jsdelivr.net/npm/three@0.164/examples/jsm/loaders/GLTFLoader.js";
+import * as THREE from "three";
+import { OBJLoader } from "three/addons/loaders/OBJLoader.js";
+import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import {
   getSession,
   getAppState,
@@ -190,6 +190,9 @@ function reflectPanelUI(panelId) {
 function setPanel(panelId) {
   mergeAppState({ lastPanel: panelId });
   reflectPanelUI(panelId);
+  if (panelId === "juego") renderJuegoPanel();
+  if (panelId === "reportes") renderReportesPanel();
+  if (panelId === "testimonios") renderTestimoniosPanel();
 }
 
 async function loadModelsFromServer() {
@@ -316,15 +319,23 @@ function applyPreviewLayout(panel) {
   previewAnimGif.hidden = p !== "animaciones" || !st.animation || st.animation.kind !== "gif";
 
   if (p === "modelos") {
-    previewBadge.textContent = "Modelo 3D";
+    if (previewBadge) previewBadge.textContent = "Modelo 3D";
     modelGroup.visible = true;
     animRoot.visible = false;
   } else if (p === "audios") {
-    previewBadge.textContent = "Audio + imagen";
+    if (previewBadge) previewBadge.textContent = "Audio + imagen";
     modelGroup.visible = showCanvasInAudio;
     animRoot.visible = false;
+  } else if (p === "juego" || p === "reportes" || p === "testimonios") {
+    if (previewBadge) {
+      previewBadge.textContent =
+        p === "juego" ? "Juego" : p === "reportes" ? "Reportes" : "Testimonios";
+    }
+    modelGroup.visible = false;
+    animRoot.visible = false;
+    canvas.style.display = "none";
   } else {
-    previewBadge.textContent = "Animación";
+    if (previewBadge) previewBadge.textContent = "Animación";
     modelGroup.visible = false;
     animRoot.visible = !!(st.animation && st.animation.enabled !== false);
   }
@@ -336,6 +347,13 @@ function applyPreviewLayout(panel) {
   if (previewAnimSubtitlePublic) {
     previewAnimSubtitlePublic.hidden = p !== "animaciones";
     if (p === "animaciones") updateAnimSubtitle();
+  }
+
+  const idle = document.getElementById("previewIdlePanel");
+  if (idle) {
+    const showIdle = p === "reportes" || p === "juego" || p === "testimonios";
+    idle.hidden = !showIdle;
+    idle.setAttribute("aria-hidden", showIdle ? "false" : "true");
   }
 }
 
@@ -729,6 +747,25 @@ document.getElementById("pauseAudio").onclick = () => {
   audioAD.pause();
 };
 
+document.getElementById("restartUrnaAudio").onclick = () => {
+  const st = getAppState();
+  const hasAd = !!(st.audio?.adDataUrl || st.audio?.adUrlPath || st.audio?.adBlobKey);
+  const use = adActive && hasAd ? audioAD : audioMain;
+  const other = adActive && hasAd ? audioMain : audioAD;
+  audioMain.currentTime = 0;
+  audioAD.currentTime = 0;
+  other.pause();
+  if (!use.src) {
+    subtitleEl.textContent = "Carga un audio principal o revisa formato (p. ej. MP3).";
+    updateSubtitleFromAudio();
+    return;
+  }
+  playWhenReady(use).catch(() => {
+    subtitleEl.textContent = "Carga un audio principal o revisa formato (p. ej. MP3).";
+  });
+  updateSubtitleFromAudio();
+};
+
 document.getElementById("toggleAD").onclick = () => {
   const st = getAppState();
   const hasAd = !!(st.audio?.adDataUrl || st.audio?.adUrlPath || st.audio?.adBlobKey);
@@ -883,7 +920,7 @@ document.getElementById("clearAudioAD").onclick = async () => {
   await wireAudioFromState(getAppState());
 };
 
-document.getElementById("clearAudioImg").onclick = async () => {
+document.getElementById("clearAudioImg")?.addEventListener("click", async () => {
   try {
     await idbDelete(BLOB_AUDIO_IMAGE);
   } catch {}
@@ -897,7 +934,7 @@ document.getElementById("clearAudioImg").onclick = async () => {
   });
   await wireAudioFromState(getAppState());
   applyPreviewLayout("audios");
-};
+});
 
 const animFileName = document.getElementById("animFileName");
 
@@ -1120,6 +1157,18 @@ document.getElementById("toggleAnimAD").onclick = () => {
   document.getElementById("toggleAnimAD").classList.toggle("btn-active", animAdActive);
 };
 
+document.getElementById("btnAnimAudioRestart").onclick = () => {
+  audioAnim.pause();
+  audioAnimAD.pause();
+  audioAnim.currentTime = 0;
+  audioAnimAD.currentTime = 0;
+  updateAnimSubtitle();
+  const a = animAdActive && audioAnimAD.src ? audioAnimAD : audioAnim;
+  const o = animAdActive && audioAnimAD.src ? audioAnim : audioAnimAD;
+  o.pause();
+  if (a.src) a.play().catch(() => {});
+};
+
 function animSubsForAudio() {
   const st = getAppState();
   if (animAdActive) {
@@ -1183,6 +1232,69 @@ function defaultAnimSubsAD() {
   ];
 }
 
+// ─── Panel Juego ─────────────────────────────────────────────────────────────
+function renderJuegoPanel() {
+  const container = document.getElementById("juegoContent");
+  if (!container) return;
+  if (typeof SIMBOLOS_DATA === "undefined") {
+    container.innerHTML = "<p class='muted'>No se encontraron datos de símbolos.</p>";
+    return;
+  }
+  const letras = ["A", "B", "C", "D"];
+  container.innerHTML = SIMBOLOS_DATA.map((s) => `
+    <div class="juego-simbolo-block">
+      <div class="juego-simbolo-header">
+        <img class="juego-simbolo-img" src="${escHtml(s.imagen)}" alt="${escHtml(s.nombre)}">
+        <span class="juego-simbolo-nombre">${escHtml(s.nombre)}</span>
+      </div>
+      ${s.preguntas.map((p, pi) => `
+        <div class="juego-pregunta-row">
+          <span class="juego-pregunta-texto">P${pi + 1}: ${escHtml(p.texto)}</span>
+          ${p.opciones.map((op, oi) => `
+            <span class="juego-opcion${oi === p.correcta ? " correcta" : ""}">
+              ${letras[oi]}) ${escHtml(op)}${oi === p.correcta ? " (correcta)" : ""}
+            </span>
+          `).join("")}
+          <span class="juego-justificacion">${escHtml(p.justificacion)}</span>
+        </div>
+      `).join("")}
+    </div>
+  `).join("");
+}
+
+// ─── Panel Reportes ───────────────────────────────────────────────────────────
+function renderReportesPanel() {
+  const container = document.getElementById("reportesContent");
+  if (!container) return;
+  import("./reports.js")
+    .then(({ renderReportes }) => {
+      renderReportes("reportesContent");
+    })
+    .catch((err) => {
+      console.error("Reportes:", err);
+      container.innerHTML =
+        "<p class='muted'>No se pudo cargar el módulo de reportes. Revisa la consola (F12) para el detalle.</p>";
+    });
+}
+
+function renderTestimoniosPanel() {
+  const container = document.getElementById("testimoniosContent");
+  if (!container) return;
+  import("./testimonios.js").then(({ renderTestimoniosAdmin }) => {
+    renderTestimoniosAdmin("testimoniosContent");
+  }).catch(() => {
+    container.innerHTML = "<p class='muted'>No se pudo cargar testimonios.</p>";
+  });
+}
+
+function escHtml(str) {
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
 (async function init() {
   let st = getAppState();
   if (!st.animation || st.animation.kind !== "sanagustin") {
@@ -1225,6 +1337,8 @@ function defaultAnimSubsAD() {
       if (st2.animAudioMainUrl) audioAnim.src = st2.animAudioMainUrl;
       if (st2.animAudioADUrl) audioAnimAD.src = st2.animAudioADUrl;
       modelFileName.textContent = st2.model?.name || "Ninguno";
+      if (st2.lastPanel === "reportes") renderReportesPanel();
+      if (st2.lastPanel === "testimonios") renderTestimoniosPanel();
     };
   } catch {}
 })();

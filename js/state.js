@@ -42,6 +42,7 @@ export function defaultAppState() {
     animAudioADUrl: null,
     animSubtitlesMain: null,
     animSubtitlesAD: null,
+    testimonials: [],
   };
 }
 
@@ -149,6 +150,9 @@ function mergeAppStateObject(o) {
   }
   if (base.animation && typeof base.animation.enabled !== "boolean") {
     base.animation.enabled = true;
+  }
+  if (!Array.isArray(base.testimonials)) {
+    base.testimonials = [];
   }
   return base;
 }

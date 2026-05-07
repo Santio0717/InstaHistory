@@ -1,4 +1,4 @@
-onst form = document.getElementById("loginForm");
+const form = document.getElementById("loginForm");
 const err = document.getElementById("error");
 
 function setSession(user) {

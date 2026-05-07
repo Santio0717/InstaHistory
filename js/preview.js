@@ -1,664 +1,1093 @@
-import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.164/build/three.module.js";
-import { OBJLoader } from "https://cdn.jsdelivr.net/npm/three@0.164/examples/jsm/loaders/OBJLoader.js";
-import { GLTFLoader } from "https://cdn.jsdelivr.net/npm/three@0.164/examples/jsm/loaders/GLTFLoader.js";
+import * as THREE from "three";
+import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import {
   getSession,
-  getAppState,
   logout,
-  SYNC_CHANNEL,
-  pullAppStateFromIdbOnly,
+  hydrateAppStateFromStorage,
+  getAppState,
   pickSubtitleAtTime,
 } from "./state.js";
 import { idbGet } from "./idb.js";
-import {
-  parseObjFromDataUrl,
-  parseGltfFromDataUrl,
-  parseGltfFromDataUrlAuto,
-} from "./modelLoaders.js";
+import { saveResult } from "./results.js";
 
-if (getSession()?.role !== "student") {
-  window.location.replace("index.html");
-} else {
-  const canvas = document.getElementById("threeCanvas");
-  const previewStackEl = document.getElementById("previewStack");
-  let _lastRW = 0;
-  let _lastRH = 0;
+// ─── Guard: solo estudiantes ────────────────────────────────────────────────
+const session = getSession();
+if (!session || session.role !== "student") {
+  window.location.href = "index.html";
+  throw new Error("no-student");
+}
 
-  function updateRendererSize() {
-    if (!previewStackEl || !canvas) return;
-    const r = previewStackEl.getBoundingClientRect();
-    let w = Math.floor(r.width);
-    let h = Math.floor(r.height);
-    if (w < 32) w = 520;
-    if (h < 32) h = 400;
-    if (w === _lastRW && h === _lastRH) return;
-    _lastRW = w;
-    _lastRH = h;
-    camera.aspect = w / Math.max(h, 1);
-    camera.updateProjectionMatrix();
-    renderer.setSize(w, h, false);
+document.getElementById("btnLogoutExp").addEventListener("click", logout);
+
+const EXP_QR_URL = "https://linktr.ee/sanagustin_experiencia";
+
+function closeExpQrModal() {
+  const ov = document.getElementById("expQrOverlay");
+  if (ov) {
+    ov.hidden = true;
+    ov.setAttribute("aria-hidden", "true");
   }
+}
 
-  const previewAudioImg = document.getElementById("previewAudioImg");
-  const previewAnimVideo = document.getElementById("previewAnimVideo");
-  const previewAnimGif = document.getElementById("previewAnimGif");
-  const subtitleEl = document.getElementById("subtitle");
-  const animSubtitleEl = document.getElementById("animSubtitle");
-  const previewHint = document.getElementById("previewHint");
-  const studentControls = document.getElementById("studentControls");
-
-  const audioMain = document.getElementById("audioMain");
-  const audioAD = document.getElementById("audioAD");
-  const audioAnim = document.getElementById("audioAnim");
-  const audioAnimAD = document.getElementById("audioAnimAD");
-
-  document.getElementById("btnLogout").onclick = () => logout();
-
-  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
-  renderer.outputColorSpace = THREE.SRGBColorSpace;
-  renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.45;
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
-  const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 1000);
-  camera.position.z = 4;
-  scene.add(new THREE.AmbientLight(0xffffff, 1.15));
-  scene.add(new THREE.HemisphereLight(0xffffff, 0x334466, 0.9));
-  const dir = new THREE.DirectionalLight(0xffffff, 1.8);
-  dir.position.set(3, 5, 2);
-  scene.add(dir);
-  const fill = new THREE.DirectionalLight(0xcfdfff, 1.1);
-  fill.position.set(-3, 2.5, 2.2);
-  scene.add(fill);
-
-  const modelGroup = new THREE.Group();
-  const animRoot = new THREE.Group();
-  scene.add(modelGroup);
-  scene.add(animRoot);
-
-  const clock = new THREE.Clock();
-  let mixer = null;
-  let gltfAnim = null;
-  let sanAgustinAnimNode = null;
-  let sanAgustinSpinEnabled = true;
-  let adActive = false;
-  let subsVisible = true;
-
-  let _objUrlAudioMain = null;
-  let _objUrlAudioAD = null;
-  let _objUrlImage = null;
-  let _objUrlModel = null;
-  let _objUrlAnimModel = null;
-  function revokeMain() {
-    if (_objUrlAudioMain) {
-      URL.revokeObjectURL(_objUrlAudioMain);
-      _objUrlAudioMain = null;
-    }
-  }
-  function revokeAD() {
-    if (_objUrlAudioAD) {
-      URL.revokeObjectURL(_objUrlAudioAD);
-      _objUrlAudioAD = null;
-    }
-  }
-  function revokeImg() {
-    if (_objUrlImage) {
-      URL.revokeObjectURL(_objUrlImage);
-      _objUrlImage = null;
-    }
-  }
-  function revokeModel() {
-    if (_objUrlModel) {
-      URL.revokeObjectURL(_objUrlModel);
-      _objUrlModel = null;
-    }
-  }
-  function revokeAnimModel() {
-    if (_objUrlAnimModel) {
-      URL.revokeObjectURL(_objUrlAnimModel);
-      _objUrlAnimModel = null;
-    }
-  }
-
-  function defaultAnimSubsMain() {
-    return [
-      { start: 0, end: 99999, text: "Narración de la animación." },
-    ];
-  }
-
-  const objLoader = new OBJLoader();
-  const gltfLoader = new GLTFLoader();
-
-  function fitCameraToObject(object) {
-    const box = new THREE.Box3().setFromObject(object);
-    const center = box.getCenter(new THREE.Vector3());
-    const size = box.getSize(new THREE.Vector3());
-    const maxDim = Math.max(size.x, size.y, size.z) || 1;
-    const dist = maxDim * 2.2;
-    camera.position.set(center.x, center.y, center.z + dist);
-    camera.lookAt(center);
-  }
-
-  function applyOpacity(root, pct) {
-    const v = Math.max(0, Math.min(1, Number(pct) / 100));
-    root.traverse((o) => {
-      if (!(o.isMesh || o.isSkinnedMesh || o.isInstancedMesh) || !o.material) return;
-      const mats = Array.isArray(o.material) ? o.material : [o.material];
-      mats.forEach((m) => {
-        if (!m || typeof m.opacity !== "number") return;
-        m.transparent = v < 0.999;
-        m.opacity = v;
-        m.depthWrite = v >= 0.999;
-        m.needsUpdate = true;
-        if (m.transparent && m.premultipliedAlpha) {
-          m.blending = THREE.NormalBlending;
-        }
-      });
+function openExpQrModal() {
+  const ov = document.getElementById("expQrOverlay");
+  const host = document.getElementById("expQrModalHost");
+  if (!ov || !host) return;
+  host.innerHTML = "";
+  try {
+    const QRC = globalThis.QRCode;
+    if (!QRC) throw new Error("no-qrcode");
+    new QRC(host, {
+      text: EXP_QR_URL,
+      width: 200,
+      height: 200,
+      colorDark: "#0b1020",
+      colorLight: "#e9eeff",
+      correctLevel: QRC.CorrectLevel.M,
     });
+  } catch {
+    host.innerHTML =
+      '<img src="assets/qrppt.png" alt="" width="200" height="200" style="object-fit:contain;border-radius:8px;">';
   }
+  ov.hidden = false;
+  ov.removeAttribute("aria-hidden");
+}
 
-  function animateLoop() {
-    requestAnimationFrame(animateLoop);
-    updateRendererSize();
-    const dt = clock.getDelta();
-    if (mixer) mixer.update(dt);
-    if (sanAgustinAnimNode && animRoot.visible && sanAgustinSpinEnabled) {
-      sanAgustinAnimNode.rotation.y += dt * 0.7;
+document.getElementById("btnHeaderQr")?.addEventListener("click", (e) => {
+  e.preventDefault();
+  openExpQrModal();
+});
+document.getElementById("expQrOverlayClose")?.addEventListener("click", closeExpQrModal);
+document.getElementById("expQrBackdrop")?.addEventListener("click", closeExpQrModal);
+document.addEventListener("keydown", (e) => {
+  if (e.key !== "Escape") return;
+  const ov = document.getElementById("expQrOverlay");
+  if (ov && !ov.hidden) closeExpQrModal();
+});
+
+// ─── Estado de la experiencia ───────────────────────────────────────────────
+let expState = "urna";
+let simboloActual = null;
+let preguntaActual = 0;
+let correctas = 0;
+let incorrectas = 0;
+let opcionSeleccionada = 0;
+let simboloSeleccionado = 0;
+let sesionSimbolosVistos = [];
+
+// ─── Cronómetro ─────────────────────────────────────────────────────────────
+let cronStart = null;
+const elCron = document.getElementById("cronometro");
+
+function iniciarCronometro() {
+  cronStart = Date.now();
+  setInterval(() => {
+    const secs = Math.floor((Date.now() - cronStart) / 1000);
+    elCron.textContent = fmtTime(secs);
+  }, 500);
+}
+
+function fmtTime(secs) {
+  return `${String(Math.floor(secs / 60)).padStart(2, "0")}:${String(secs % 60).padStart(2, "0")}`;
+}
+
+function tiempoTotal() {
+  if (!cronStart) return "00:00";
+  return fmtTime(Math.floor((Date.now() - cronStart) / 1000));
+}
+
+// ─── Secciones DOM ──────────────────────────────────────────────────────────
+const secciones = {
+  urna:     document.getElementById("seccionUrna"),
+  simbolos: document.getElementById("seccionSimbolos"),
+  pregunta: document.getElementById("seccionPregunta"),
+  feedback: document.getElementById("seccionFeedback"),
+  qr:       document.getElementById("seccionQr"),
+};
+
+function mostrarSeccion(nombre) {
+  expState = nombre;
+  Object.values(secciones).forEach(el => { if (el) el.style.display = "none"; });
+  if (secciones[nombre]) secciones[nombre].style.display = "flex";
+}
+
+// ─── HUD ────────────────────────────────────────────────────────────────────
+const elContador = document.getElementById("contadorPreguntas");
+const elHud = document.getElementById("expHud");
+
+function mostrarContador(num, total) {
+  elContador.textContent = `${num}/${total}`;
+  elContador.style.visibility = "visible";
+}
+
+function ocultarContador() {
+  elContador.style.visibility = "hidden";
+}
+
+// ─── Three.js — Urna ─────────────────────────────────────────────────────────
+const canvas = document.getElementById("urnaCanvas");
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.3;
+renderer.setClearColor(0x000000, 0);
+
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(42, 1, 0.05, 1000);
+camera.position.set(0, 0, 3.2);
+
+// Iluminación mejorada
+scene.add(new THREE.AmbientLight(0xffffff, 0.5));
+const keyLight = new THREE.DirectionalLight(0xfff5e0, 1.8);
+keyLight.position.set(3, 5, 4);
+scene.add(keyLight);
+const fillLight = new THREE.DirectionalLight(0x6aa9ff, 0.8);
+fillLight.position.set(-3, 2, -2);
+scene.add(fillLight);
+const rimLight = new THREE.DirectionalLight(0xffa060, 0.6);
+rimLight.position.set(0, -3, -4);
+scene.add(rimLight);
+scene.add(new THREE.HemisphereLight(0x3a6090, 0x0b1020, 0.6));
+
+let urnaGroup = null;
+let autoRotate = true;
+let urnaLoaded = false;
+
+function centrarModelo(group) {
+  const box = new THREE.Box3().setFromObject(group);
+  const center = box.getCenter(new THREE.Vector3());
+  const size = box.getSize(new THREE.Vector3());
+  group.position.sub(center);
+  const maxDim = Math.max(size.x, size.y, size.z, 1e-6);
+  // Normalizar: la dimensión mayor = 1 (el encuadre lo hace ajustarCamaraAUrna)
+  group.scale.setScalar(1 / maxDim);
+  group.position.y -= 0.04;
+}
+
+/** Distancia de cámara para que la urna quepa con margen según FOV y aspecto */
+function ajustarCamaraAUrna() {
+  if (!urnaGroup) return;
+  const box = new THREE.Box3().setFromObject(urnaGroup);
+  const size = box.getSize(new THREE.Vector3());
+  const maxDim = Math.max(size.x, size.y, size.z, 0.05);
+  const vFov = (camera.fov * Math.PI) / 180;
+  const hFov = 2 * Math.atan(Math.tan(vFov / 2) * Math.max(camera.aspect, 0.25));
+  const margin = 1.12;
+  const distV = (maxDim * margin) / (2 * Math.tan(vFov / 2));
+  const distH = (maxDim * margin) / (2 * Math.tan(hFov / 2));
+  const dist = Math.min(Math.max(Math.max(distV, distH), 1.75), 10);
+  camera.position.set(0, 0, dist);
+  camera.lookAt(0, 0, 0);
+}
+
+const gltfLoader = new GLTFLoader();
+gltfLoader.load(
+  "InteraccionControl/Frontend/model/Urna.glb",
+  (gltf) => {
+    urnaGroup = gltf.scene;
+    centrarModelo(urnaGroup);
+    scene.add(urnaGroup);
+    urnaLoaded = true;
+    forceSizeRenderer();
+    ajustarCamaraAUrna();
+    scheduleUrnaLayoutRemeasure();
+    ocultarCarga();
+  },
+  undefined,
+  () => {
+    const group = new THREE.Group();
+    const mat = new THREE.MeshStandardMaterial({ color: 0x8b6914, roughness: 0.65, metalness: 0.25 });
+    const body = new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.32, 1.0, 32), mat);
+    const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.40, 0.22, 32), mat);
+    neck.position.y = 0.61;
+    const rim  = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.18, 0.10, 32), mat);
+    rim.position.y = 0.76;
+    group.add(body, neck, rim);
+    centrarModelo(group);
+    urnaGroup = group;
+    scene.add(urnaGroup);
+    urnaLoaded = true;
+    forceSizeRenderer();
+    ajustarCamaraAUrna();
+    scheduleUrnaLayoutRemeasure();
+    ocultarCarga();
+  }
+);
+
+let _urnaBufW = 0;
+let _urnaBufH = 0;
+
+/** Límite seguro: en Firefox los atributos width/height del canvas pueden re-disparar layout; nunca pasar del viewport. */
+function capWebGLSize(w, h) {
+  const vv = typeof visualViewport !== "undefined" ? visualViewport : null;
+  const maxW = Math.min(4096, Math.ceil((vv?.width ?? window.innerWidth) * 1.25));
+  const maxH = Math.min(4096, Math.ceil((vv?.height ?? window.innerHeight) * 1.25));
+  return {
+    w: Math.min(Math.max(2, Math.floor(w)), maxW),
+    h: Math.min(Math.max(2, Math.floor(h)), maxH),
+  };
+}
+
+// Tamaño del wrap sin superar el viewport (evita bucle WebGL + ResizeObserver en Firefox)
+function forceSizeRenderer() {
+  const wrap = document.getElementById("urnaCanvasWrap");
+  if (!wrap) return;
+  let w = wrap.clientWidth;
+  let h = wrap.clientHeight;
+  if (w < 8 || h < 8) {
+    w = window.innerWidth;
+    h = Math.max(200, window.innerHeight - 56);
+  }
+  const capped = capWebGLSize(w, h);
+  w = capped.w;
+  h = capped.h;
+  if (w === _urnaBufW && h === _urnaBufH) return;
+  _urnaBufW = w;
+  _urnaBufH = h;
+  renderer.setSize(w, h, false);
+  camera.aspect = w / h;
+  camera.updateProjectionMatrix();
+  if (urnaLoaded) ajustarCamaraAUrna();
+}
+
+function resizeRenderer() {
+  if (expState !== "urna") return;
+  forceSizeRenderer();
+}
+
+/** Tras cambiar display/flex, un frame más tarde el clientWidth del wrap ya es correcto */
+function scheduleUrnaLayoutRemeasure() {
+  requestAnimationFrame(() => {
+    _urnaBufW = 0;
+    _urnaBufH = 0;
+    if (expState === "urna") forceSizeRenderer();
+  });
+}
+
+window.addEventListener("resize", resizeRenderer);
+if (typeof visualViewport !== "undefined" && visualViewport) {
+  visualViewport.addEventListener("resize", resizeRenderer);
+}
+
+// ─── Loop de animación ───────────────────────────────────────────────────────
+(function loop() {
+  requestAnimationFrame(loop);
+  if (expState === "urna") {
+    if (urnaGroup && autoRotate) urnaGroup.rotation.y += 0.004;
+    tickGamepad();
+    if (urnaLoaded) renderer.render(scene, camera);
+  } else {
+    tickGamepadNav();
+  }
+})();
+
+// ─── Gamepad + teclado (mismo cooldown de navegación) ───────────────────────
+const DEADZONE = 0.18;
+let lastBtn0 = false;
+let navCooldown = 0;
+
+function getGamepad() {
+  return Array.from(navigator.getGamepads ? navigator.getGamepads() : []).find(g => g && g.connected);
+}
+
+function tickGamepad() {
+  const gp = getGamepad();
+  if (!gp || !urnaGroup) return;
+
+  const ax = gp.axes[0] ?? 0;
+  const ay = gp.axes[1] ?? 0;
+  const moving = Math.abs(ax) > DEADZONE || Math.abs(ay) > DEADZONE;
+
+  if (Math.abs(ax) > DEADZONE) { urnaGroup.rotation.y += ax * 0.035; autoRotate = false; }
+  if (Math.abs(ay) > DEADZONE) { urnaGroup.rotation.x += ay * 0.035; autoRotate = false; }
+  if (!moving) autoRotate = true;
+
+  if (gp.buttons[5]?.pressed) camera.position.z = Math.max(1.6, camera.position.z - 0.05);
+  if (gp.buttons[4]?.pressed) camera.position.z = Math.min(11, camera.position.z + 0.05);
+}
+
+function tickGamepadNav() {
+  const gp = getGamepad();
+  if (!gp) return;
+  const now = performance.now();
+
+  const dL = gp.buttons[14]?.pressed || (gp.axes[2] ?? 0) < -DEADZONE;
+  const dR = gp.buttons[15]?.pressed || (gp.axes[2] ?? 0) > DEADZONE;
+  const dU = gp.buttons[12]?.pressed || (gp.axes[3] ?? 0) < -DEADZONE;
+  const dD = gp.buttons[13]?.pressed || (gp.axes[3] ?? 0) > DEADZONE;
+
+  if (now > navCooldown) {
+    if (expState === "simbolos") {
+      const total = SIMBOLOS_DATA.length;
+      if (dL) { simboloSeleccionado = (simboloSeleccionado - 1 + total) % total; resaltarSimbolo(simboloSeleccionado); navCooldown = now + 220; }
+      if (dR) { simboloSeleccionado = (simboloSeleccionado + 1) % total; resaltarSimbolo(simboloSeleccionado); navCooldown = now + 220; }
     }
-    renderer.render(scene, camera);
-  }
-  animateLoop();
-  window.addEventListener("resize", updateRendererSize);
-  if (typeof ResizeObserver !== "undefined" && previewStackEl) {
-    new ResizeObserver(() => updateRendererSize()).observe(previewStackEl);
-  }
-  requestAnimationFrame(updateRendererSize);
-
-  function currentSubs() {
-    const st = getAppState();
-    if (adActive) {
-      if (Array.isArray(st.subtitlesAD) && st.subtitlesAD.length) return st.subtitlesAD;
-      if (Array.isArray(st.subtitlesMain) && st.subtitlesMain.length) return st.subtitlesMain;
-      return [];
-    }
-    return st.subtitlesMain || [];
-  }
-
-  function subtitleTextAt(subs, timeSeconds) {
-    if (!Array.isArray(subs) || !subs.length) return "";
-    const t = Number(timeSeconds);
-    if (!Number.isFinite(t)) return "";
-
-    for (const s of subs) {
-      const start = Number(s.start);
-      const end = Number(s.end);
-      if (!Number.isFinite(start) || !Number.isFinite(end)) continue;
-      if (t >= start && t < end) return s.text || "";
-    }
-
-    return pickSubtitleAtTime(subs, t) || "";
-  }
-
-  function onAudioTime() {
-    if (!subsVisible) {
-      subtitleEl.textContent = "";
-      return;
-    }
-    const a = adActive && audioAD.src ? audioAD : audioMain;
-    const subs = currentSubs();
-    const text = subtitleTextAt(subs, a.currentTime);
-    subtitleEl.textContent = text || (a.paused ? "Pausado" : "");
-  }
-
-  let subtitleTicker = null;
-  function ensureSubtitleTicker() {
-    const shouldRun = (!audioMain.paused && !!audioMain.src) || (!audioAD.paused && !!audioAD.src);
-    if (shouldRun && !subtitleTicker) {
-      subtitleTicker = setInterval(onAudioTime, 150);
-      return;
-    }
-    if (!shouldRun && subtitleTicker) {
-      clearInterval(subtitleTicker);
-      subtitleTicker = null;
+    if (expState === "pregunta") {
+      const tot = SIMBOLOS_DATA[simboloActual]?.preguntas[preguntaActual]?.opciones.length ?? 4;
+      if (dU) { opcionSeleccionada = (opcionSeleccionada - 1 + tot) % tot; resaltarOpcion(opcionSeleccionada); navCooldown = now + 220; }
+      if (dD) { opcionSeleccionada = (opcionSeleccionada + 1) % tot; resaltarOpcion(opcionSeleccionada); navCooldown = now + 220; }
     }
   }
 
-  function bindAudioSubtitleSync(media, fn) {
-    ["timeupdate", "play", "pause", "seeked", "loadedmetadata", "ended"].forEach((ev) =>
-      media.addEventListener(ev, () => {
-        fn();
-        ensureSubtitleTicker();
-      })
-    );
+  const pressed = gp.buttons[0]?.pressed ?? false;
+  if (pressed && !lastBtn0) {
+    if (expState === "simbolos") seleccionarSimbolo(simboloSeleccionado);
+    else if (expState === "pregunta") confirmarOpcion(opcionSeleccionada);
+    else if (expState === "feedback") document.getElementById("btnSiguiente")?.click();
+    else if (expState === "qr") document.getElementById("btnSeguir")?.click();
   }
-  bindAudioSubtitleSync(audioMain, onAudioTime);
-  bindAudioSubtitleSync(audioAD, onAudioTime);
+  lastBtn0 = pressed;
+}
 
-  function playWhenReady(media) {
-    if (!media?.src) return Promise.reject(new Error("sin audio"));
-    const run = () => media.play();
-    if (media.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA) return run();
-    return new Promise((resolve, reject) => {
-      const onErr = () => {
-        media.removeEventListener("canplay", onOk);
-        reject(media.error || new Error("error de audio"));
-      };
-      const onOk = () => {
-        media.removeEventListener("error", onErr);
-        run().then(resolve).catch(reject);
-      };
-      media.addEventListener("canplay", onOk, { once: true });
-      media.addEventListener("error", onErr, { once: true });
-    });
-  }
+function isFormFieldTarget(el) {
+  if (!el || el === document.body) return false;
+  const t = el.tagName;
+  if (t === "INPUT" || t === "TEXTAREA" || t === "SELECT") return true;
+  return !!(el.isContentEditable && el.isContentEditable !== "false");
+}
 
-  function layout(st) {
-    const p = st.lastPanel || "modelos";
-    const hasAudioImage = !!(st.audio?.imageDataUrl || st.audio?.imageBlobKey);
-    const hasModel = !!(st.model?.urlPath || st.model?.dataUrl || st.model?.blobKey);
-    previewHint.textContent =
-      p === "modelos"
-        ? "Contenido configurado por el administrador (modelo 3D)."
-        : p === "audios"
-          ? "Audio e imagen configurados por el administrador."
-          : "Animación configurada por el administrador.";
+function expQrOverlayIsOpen() {
+  const ov = document.getElementById("expQrOverlay");
+  return !!(ov && !ov.hidden);
+}
 
-    const hideCanvasForAnim =
-      p === "animaciones" &&
-      st.animation &&
-      (st.animation.kind === "video" || st.animation.kind === "gif");
+function setupUrnaPointerControls() {
+  const wrap = document.getElementById("urnaCanvasWrap");
+  if (!wrap) return;
+  const drag = { active: false, id: -1, lx: 0, ly: 0 };
 
-    const showCanvasInAudio = p === "audios" && !hasAudioImage && hasModel;
-    canvas.style.display = showCanvasInAudio || (p !== "audios" && !hideCanvasForAnim) ? "block" : "none";
-    previewAudioImg.hidden =
-      p !== "audios" || !hasAudioImage;
-    previewAnimVideo.hidden = p !== "animaciones" || !st.animation || st.animation.kind !== "video";
-    previewAnimGif.hidden = p !== "animaciones" || !st.animation || st.animation.kind !== "gif";
-
-    const showAudioControls = true;
-    studentControls.hidden = !showAudioControls;
-    studentControls.style.display = showAudioControls ? "flex" : "none";
-
-    subtitleEl.hidden = false;
-    if (animSubtitleEl) {
-      animSubtitleEl.hidden = p !== "animaciones";
-      if (p !== "animaciones") animSubtitleEl.textContent = "";
-    }
-
-    modelGroup.visible = p === "modelos" || showCanvasInAudio;
-    animRoot.visible =
-      p === "animaciones" &&
-      !!st.animation &&
-      st.animation.enabled !== false &&
-      (st.animation.kind === "gltf" || st.animation.kind === "sanagustin");
-  }
-
-  async function loadModel(st) {
-    while (modelGroup.children.length) modelGroup.remove(modelGroup.children[0]);
-    if (!st.model?.dataUrl && !st.model?.urlPath && !st.model?.blobKey) return;
-    const kind = st.model.kind || "obj";
+  wrap.addEventListener("pointerdown", (e) => {
+    if (expState !== "urna" || expQrOverlayIsOpen()) return;
+    if (e.button !== 0) return;
+    const t = e.target;
+    if (t.closest?.(".urna-media-bar") || t.closest?.("#loadingScreen") || t.closest?.("#urnaCountdown")) return;
+    drag.active = true;
+    drag.id = e.pointerId;
+    drag.lx = e.clientX;
+    drag.ly = e.clientY;
     try {
-      if (st.model.urlPath && !st.model.dataUrl && !st.model.blobKey) {
-        if (kind === "glb" || kind === "gltf") {
-          await new Promise((resolve, reject) => {
-            gltfLoader.load(
-              st.model.urlPath,
-              (gltf) => {
-                modelGroup.add(gltf.scene);
-                fitCameraToObject(gltf.scene);
-                applyOpacity(modelGroup, 100);
-                resolve();
-              },
-              undefined,
-              reject
-            );
-          });
-        } else {
-          await new Promise((resolve, reject) => {
-            objLoader.load(
-              st.model.urlPath,
-              (obj) => {
-                modelGroup.add(obj);
-                fitCameraToObject(obj);
-                applyOpacity(modelGroup, 100);
-                resolve();
-              },
-              undefined,
-              reject
-            );
-          });
-        }
-      } else if (st.model.blobKey && !st.model.dataUrl) {
-        const b = await idbGet(st.model.blobKey);
-        if (!(b instanceof Blob)) return;
-        revokeModel();
-        _objUrlModel = URL.createObjectURL(b);
-        const path = _objUrlModel;
-        if (kind === "glb" || kind === "gltf") {
-          await new Promise((resolve, reject) => {
-            gltfLoader.load(
-              path,
-              (gltf) => {
-                modelGroup.add(gltf.scene);
-                fitCameraToObject(gltf.scene);
-                applyOpacity(modelGroup, 100);
-                resolve();
-              },
-              undefined,
-              reject
-            );
-          });
-        } else {
-          await new Promise((resolve, reject) => {
-            objLoader.load(
-              path,
-              (obj) => {
-                modelGroup.add(obj);
-                fitCameraToObject(obj);
-                applyOpacity(modelGroup, 100);
-                resolve();
-              },
-              undefined,
-              reject
-            );
-          });
-        }
-      } else if (kind === "glb" || kind === "gltf") {
-        const gltf = await parseGltfFromDataUrl(gltfLoader, st.model.dataUrl, kind);
-        modelGroup.add(gltf.scene);
-        fitCameraToObject(gltf.scene);
-        applyOpacity(modelGroup, 100);
-      } else {
-        const obj = await parseObjFromDataUrl(objLoader, st.model.dataUrl);
-        modelGroup.add(obj);
-        fitCameraToObject(obj);
-        applyOpacity(modelGroup, 100);
-      }
-      updateRendererSize();
-    } catch (e) {
-      console.error(e);
-      previewHint.textContent = e?.message || "No se pudo cargar el modelo.";
+      wrap.setPointerCapture(e.pointerId);
+    } catch {
+      /* ignore */
+    }
+  });
+
+  wrap.addEventListener("pointermove", (e) => {
+    if (!drag.active || e.pointerId !== drag.id) return;
+    const dx = e.clientX - drag.lx;
+    const dy = e.clientY - drag.ly;
+    drag.lx = e.clientX;
+    drag.ly = e.clientY;
+    if (urnaGroup) {
+      urnaGroup.rotation.y += dx * 0.005;
+      urnaGroup.rotation.x += dy * 0.005;
+      autoRotate = false;
+    }
+  });
+
+  function endDrag(e) {
+    if (!drag.active || e.pointerId !== drag.id) return;
+    drag.active = false;
+    drag.id = -1;
+    try {
+      wrap.releasePointerCapture(e.pointerId);
+    } catch {
+      /* ignore */
     }
   }
+  wrap.addEventListener("pointerup", endDrag);
+  wrap.addEventListener("pointercancel", endDrag);
 
-  function clearAnim() {
-    mixer = null;
-    gltfAnim = null;
-    sanAgustinAnimNode = null;
-    revokeAnimModel();
-    while (animRoot.children.length) animRoot.remove(animRoot.children[0]);
-    previewAnimVideo.removeAttribute("src");
-    previewAnimGif.removeAttribute("src");
-  }
+  wrap.addEventListener(
+    "wheel",
+    (e) => {
+      if (expState !== "urna" || expQrOverlayIsOpen()) return;
+      if (e.target.closest?.(".urna-media-bar")) return;
+      e.preventDefault();
+      const step = Math.min(0.35, Math.abs(e.deltaY) * 0.008);
+      const dz = e.deltaY > 0 ? step : -step;
+      camera.position.z = Math.min(11, Math.max(1.6, camera.position.z + dz));
+    },
+    { passive: false }
+  );
+}
 
-  async function loadSanAgustinAnimatedModel(st) {
-    const src = st.model;
-    if (!src) throw new Error("Sin modelo cargado por el administrador.");
-    const kind = src.kind || "obj";
+function setupPreviewKeyboardNav() {
+  document.addEventListener("keydown", (e) => {
+    if (isFormFieldTarget(e.target)) return;
 
-    if (src.urlPath && !src.dataUrl && !src.blobKey) {
-      if (kind === "glb" || kind === "gltf") {
-        return new Promise((resolve, reject) => {
-          gltfLoader.load(src.urlPath, (gltf) => resolve(gltf.scene), undefined, reject);
-        });
+    if (expState === "urna" && !expQrOverlayIsOpen()) {
+      if (e.target.closest?.(".urna-media-bar")) return;
+      const step = e.repeat ? 0.035 : 0.07;
+      if (e.key === "ArrowLeft") {
+        if (urnaGroup) urnaGroup.rotation.y -= step;
+        e.preventDefault();
+        return;
       }
-      return new Promise((resolve, reject) => {
-        objLoader.load(src.urlPath, (obj) => resolve(obj), undefined, reject);
-      });
+      if (e.key === "ArrowRight") {
+        if (urnaGroup) urnaGroup.rotation.y += step;
+        e.preventDefault();
+        return;
+      }
+      if (e.key === "ArrowUp") {
+        if (urnaGroup) urnaGroup.rotation.x -= step;
+        e.preventDefault();
+        return;
+      }
+      if (e.key === "ArrowDown") {
+        if (urnaGroup) urnaGroup.rotation.x += step;
+        e.preventDefault();
+        return;
+      }
+      if (e.key === "+" || e.key === "=") {
+        camera.position.z = Math.max(1.6, camera.position.z - 0.18);
+        e.preventDefault();
+        return;
+      }
+      if (e.key === "-" || e.key === "_") {
+        camera.position.z = Math.min(11, camera.position.z + 0.18);
+        e.preventDefault();
+        return;
+      }
     }
 
-    if (src.blobKey && !src.dataUrl) {
-      const blob = await idbGet(src.blobKey);
-      if (!(blob instanceof Blob)) throw new Error("No se encontró el modelo para animación.");
-      revokeAnimModel();
-      _objUrlAnimModel = URL.createObjectURL(blob);
-      if (kind === "glb" || kind === "gltf") {
-        return new Promise((resolve, reject) => {
-          gltfLoader.load(_objUrlAnimModel, (gltf) => resolve(gltf.scene), undefined, reject);
-        });
+    const now = performance.now();
+    const isArrowNav =
+      e.key === "ArrowLeft" ||
+      e.key === "ArrowRight" ||
+      e.key === "ArrowUp" ||
+      e.key === "ArrowDown";
+    if (isArrowNav && now <= navCooldown) return;
+
+    if (expState === "simbolos") {
+      const total = SIMBOLOS_DATA.length;
+      if (e.key === "ArrowLeft") {
+        simboloSeleccionado = (simboloSeleccionado - 1 + total) % total;
+        resaltarSimbolo(simboloSeleccionado);
+        navCooldown = now + 220;
+        e.preventDefault();
+        return;
       }
-      return new Promise((resolve, reject) => {
-        objLoader.load(_objUrlAnimModel, (obj) => resolve(obj), undefined, reject);
-      });
-    }
-
-    if (src.dataUrl) {
-      if (kind === "glb" || kind === "gltf") {
-        const gltf = await parseGltfFromDataUrl(gltfLoader, src.dataUrl, kind);
-        return gltf.scene;
+      if (e.key === "ArrowRight") {
+        simboloSeleccionado = (simboloSeleccionado + 1) % total;
+        resaltarSimbolo(simboloSeleccionado);
+        navCooldown = now + 220;
+        e.preventDefault();
+        return;
       }
-      return parseObjFromDataUrl(objLoader, src.dataUrl);
-    }
-
-    throw new Error("Modelo inválido para animación.");
-  }
-
-  function loadAnim(st) {
-    clearAnim();
-    const an = st.animation;
-    if (!an || an.enabled === false) return;
-    if (an.kind === "sanagustin") {
-      loadSanAgustinAnimatedModel(st)
-        .then((node) => {
-          sanAgustinAnimNode = node;
-          animRoot.add(node);
-          animRoot.visible = true;
-          sanAgustinSpinEnabled = true;
-          fitCameraToObject(node);
-          updateRendererSize();
-        })
-        .catch((e) => {
-          console.error(e);
-          previewHint.textContent = e?.message || "No se pudo activar la animación del modelo.";
-        });
+      if ((e.key === "Enter" || e.key === " ") && !e.repeat) {
+        seleccionarSimbolo(simboloSeleccionado);
+        e.preventDefault();
+      }
       return;
     }
-    if (!an?.dataUrl) return;
-    if (an.kind === "video") {
-      previewAnimVideo.src = an.dataUrl;
-      previewAnimVideo.hidden = false;
+
+    if (expState === "pregunta") {
+      const tot = SIMBOLOS_DATA[simboloActual]?.preguntas[preguntaActual]?.opciones.length ?? 4;
+      if (e.key === "ArrowUp") {
+        opcionSeleccionada = (opcionSeleccionada - 1 + tot) % tot;
+        resaltarOpcion(opcionSeleccionada);
+        navCooldown = now + 220;
+        e.preventDefault();
+        return;
+      }
+      if (e.key === "ArrowDown") {
+        opcionSeleccionada = (opcionSeleccionada + 1) % tot;
+        resaltarOpcion(opcionSeleccionada);
+        navCooldown = now + 220;
+        e.preventDefault();
+        return;
+      }
+      if ((e.key === "Enter" || e.key === " ") && !e.repeat) {
+        confirmarOpcion(opcionSeleccionada);
+        e.preventDefault();
+      }
       return;
     }
-    if (an.kind === "gif") {
-      previewAnimGif.src = an.dataUrl;
-      previewAnimGif.hidden = false;
+
+    if (expState === "feedback" && (e.key === "Enter" || e.key === " ") && !e.repeat) {
+      if (e.target.id === "btnSiguiente") return;
+      e.preventDefault();
+      document.getElementById("btnSiguiente")?.click();
       return;
     }
-    if (an.kind === "gltf") {
-      parseGltfFromDataUrlAuto(gltfLoader, an.dataUrl)
-        .then((gltf) => {
-          gltfAnim = gltf;
-          animRoot.add(gltf.scene);
-          animRoot.visible = true;
-          if (gltf.animations?.length) {
-            mixer = new THREE.AnimationMixer(gltf.scene);
-            gltf.animations.forEach((c) => mixer.clipAction(c).play());
-          }
-          fitCameraToObject(gltf.scene);
-          updateRendererSize();
-        })
-        .catch(console.error);
+    if (expState === "qr" && (e.key === "Enter" || e.key === " ") && !e.repeat) {
+      if (e.target.id === "btnSeguir") return;
+      e.preventDefault();
+      document.getElementById("btnSeguir")?.click();
     }
+  });
+}
+
+setupUrnaPointerControls();
+setupPreviewKeyboardNav();
+
+// ─── WebSocket (solo si ?ws=1 o servidor de interacción activo; evita errores en consola) ──
+(function tryWS() {
+  const want = new URLSearchParams(window.location.search).get("ws") === "1";
+  if (!want) return;
+  let ws;
+  try {
+    ws = new WebSocket("ws://localhost:8080");
+  } catch {
+    return;
+  }
+  ws.addEventListener("message", (ev) => {
+    try {
+      const d = JSON.parse(ev.data);
+      if (!urnaGroup || expState !== "urna") return;
+      if (d.type === "joystick") {
+        urnaGroup.rotation.y += (d.x ?? 0) * 0.035;
+        urnaGroup.rotation.x += (d.y ?? 0) * 0.035;
+        autoRotate = false;
+      }
+    } catch {}
+  });
+})();
+
+// ─── Pantalla de carga ────────────────────────────────────────────────────────
+function ocultarCarga() {
+  const ls = document.getElementById("loadingScreen");
+  if (!ls) return;
+  ls.classList.add("fade-out");
+  setTimeout(() => { ls.style.display = "none"; }, 500);
+  if (elHud) elHud.style.opacity = "1";
+}
+
+// ─── ESTADO: URNA ────────────────────────────────────────────────────────────
+let countdownSecs = 60;
+let countdownTimer = null;
+
+function iniciarUrna() {
+  mostrarSeccion("urna");
+  ocultarContador();
+  iniciarCronometro();
+
+  // Nombre del usuario en la pantalla
+  const welcomeEl = document.getElementById("urnaWelcomeUser");
+  if (welcomeEl && session.nombre) {
+    welcomeEl.textContent = `Bienvenid@, ${session.nombre}`;
   }
 
-  async function wireAudio(st) {
-    if (st.audio?.mainUrlPath) {
-      revokeMain();
-      audioMain.src = st.audio.mainUrlPath;
-    } else if (st.audio?.mainBlobKey) {
-      revokeMain();
-      const b = await idbGet(st.audio.mainBlobKey);
-      if (b instanceof Blob) {
-        _objUrlAudioMain = URL.createObjectURL(b);
-        audioMain.src = _objUrlAudioMain;
-      } else {
-        audioMain.removeAttribute("src");
-      }
-    } else if (st.audio?.mainDataUrl) {
-      revokeMain();
-      audioMain.src = st.audio.mainDataUrl;
+  resizeRenderer();
+  scheduleUrnaLayoutRemeasure();
+  if (urnaLoaded) ajustarCamaraAUrna();
+  countdownSecs = 60;
+  actualizarCountdown();
+
+  countdownTimer = setInterval(() => {
+    countdownSecs--;
+    actualizarCountdown();
+    if (countdownSecs <= 0) {
+      clearInterval(countdownTimer);
+      transicionASimbolos();
+    }
+  }, 1000);
+}
+
+function actualizarCountdown() {
+  const el = document.getElementById("urnaCountdown");
+  if (!el) return;
+  if (countdownSecs > 0) {
+    el.innerHTML = `<span class="countdown-icon">⏳</span> Símbolos en <strong>${countdownSecs}s</strong>`;
+    el.style.display = "flex";
+  } else {
+    el.style.display = "none";
+  }
+}
+
+function transicionASimbolos() {
+  pauseUrnaMedia();
+  // Pequeña animación de salida antes de cambiar
+  if (secciones.urna) {
+    secciones.urna.style.transition = "opacity 0.4s";
+    secciones.urna.style.opacity = "0";
+    setTimeout(() => {
+      secciones.urna.style.opacity = "";
+      secciones.urna.style.transition = "";
+      iniciarSimbolos();
+    }, 400);
+  } else {
+    iniciarSimbolos();
+  }
+}
+
+// ─── ESTADO: SÍMBOLOS ────────────────────────────────────────────────────────
+function iniciarSimbolos() {
+  simboloSeleccionado = 0;
+  mostrarSeccion("simbolos");
+  ocultarContador();
+  renderizarSimbolos();
+}
+
+function renderizarSimbolos() {
+  const grid = document.getElementById("simbolosGrid");
+  if (!grid) return;
+  grid.innerHTML = "";
+  SIMBOLOS_DATA.forEach((s, i) => {
+    const visto = sesionSimbolosVistos.includes(s.id);
+    const card = document.createElement("div");
+    card.className = "simbolo-card" + (visto ? " simbolo-visto" : "");
+    card.dataset.index = i;
+    card.innerHTML = `
+      <div class="simbolo-img-wrap">
+        <img src="${s.imagen}" alt="${s.nombre}" class="simbolo-img"
+             onerror="this.src='assets/qrppt.png'">
+        ${visto ? '<div class="simbolo-visto-overlay"><span>✓</span></div>' : ""}
+      </div>
+      <span class="simbolo-nombre">${s.nombre}</span>
+      ${visto ? '<span class="simbolo-badge">Explorado</span>' : '<span class="simbolo-badge-pending">Nuevo</span>'}
+    `;
+    card.addEventListener("click", () => seleccionarSimbolo(i));
+    grid.appendChild(card);
+    // Entrada con stagger
+    setTimeout(() => card.classList.add("simbolo-card--visible"), i * 120);
+  });
+  resaltarSimbolo(0);
+}
+
+function resaltarSimbolo(idx) {
+  simboloSeleccionado = idx;
+  document.querySelectorAll(".simbolo-card").forEach((c, i) => {
+    c.classList.toggle("simbolo-activo", i === idx);
+  });
+}
+
+function seleccionarSimbolo(idx) {
+  simboloActual = idx;
+  preguntaActual = 0;
+  correctas = 0;
+  incorrectas = 0;
+  mostrarPregunta();
+}
+
+// ─── ESTADO: PREGUNTA ────────────────────────────────────────────────────────
+function mostrarPregunta() {
+  mostrarSeccion("pregunta");
+  opcionSeleccionada = 0;
+  const sim   = SIMBOLOS_DATA[simboloActual];
+  const preg  = sim.preguntas[preguntaActual];
+  const total = sim.preguntas.length;
+
+  mostrarContador(preguntaActual + 1, total);
+
+  const tagEl = document.getElementById("preguntaSimboloNombre");
+  if (tagEl) tagEl.textContent = sim.nombre;
+
+  document.getElementById("preguntaContador").textContent = `${preguntaActual + 1} / ${total}`;
+  document.getElementById("preguntaTexto").textContent = preg.texto;
+
+  const wrap = document.getElementById("opcionesWrap");
+  wrap.innerHTML = "";
+  const letras = ["A", "B", "C", "D"];
+  preg.opciones.forEach((op, i) => {
+    const btn = document.createElement("button");
+    btn.className = "opcion-btn";
+    btn.dataset.index = i;
+    btn.innerHTML = `<span class="opcion-letra">${letras[i]}</span><span class="opcion-text">${op}</span>`;
+    btn.addEventListener("click", () => confirmarOpcion(i));
+    wrap.appendChild(btn);
+    setTimeout(() => btn.classList.add("opcion-btn--visible"), i * 80);
+  });
+  resaltarOpcion(0);
+}
+
+function resaltarOpcion(idx) {
+  opcionSeleccionada = idx;
+  document.querySelectorAll(".opcion-btn").forEach((b, i) => {
+    b.classList.toggle("opcion-activa", i === idx);
+  });
+}
+
+function confirmarOpcion(idx) {
+  const preg = SIMBOLOS_DATA[simboloActual].preguntas[preguntaActual];
+  const ok   = idx === preg.correcta;
+  if (ok) correctas++; else incorrectas++;
+  mostrarFeedback(ok, preg, idx);
+}
+
+// ─── ESTADO: FEEDBACK ────────────────────────────────────────────────────────
+function mostrarFeedback(ok, preg, idxSel) {
+  mostrarSeccion("feedback");
+
+  const iconEl = document.getElementById("feedbackIcon");
+  const msgEl  = document.getElementById("feedbackMensaje");
+  const justEl = document.getElementById("feedbackJustificacion");
+  const wrapEl = document.getElementById("feedbackIconWrap");
+
+  iconEl.textContent = ok ? "✅" : "❌";
+  iconEl.className   = "feedback-icon " + (ok ? "feedback-ok" : "feedback-fail");
+  if (wrapEl) wrapEl.className = "feedback-icon-wrap " + (ok ? "feedback-ok-bg" : "feedback-fail-bg");
+  msgEl.textContent  = ok ? "¡Correcto!" : "Incorrecto";
+  msgEl.className    = "feedback-mensaje " + (ok ? "feedback-ok" : "feedback-fail");
+
+  justEl.innerHTML = `
+    <div class="just-correcta">
+      <strong>Respuesta correcta:</strong> ${preg.opciones[preg.correcta]}
+    </div>
+    <div class="just-texto">${preg.justificacion}</div>
+  `;
+
+  reproducirSonido(ok);
+
+  const sim     = SIMBOLOS_DATA[simboloActual];
+  const esUltima = preguntaActual >= sim.preguntas.length - 1;
+  const btnSig  = document.getElementById("btnSiguiente");
+  btnSig.textContent = esUltima ? "Ver resultados 🏆" : "Siguiente ▶";
+  btnSig.onclick = () => {
+    if (esUltima) finalizarSimbolo();
+    else { preguntaActual++; mostrarPregunta(); }
+  };
+}
+
+// ─── Sonido Web Audio ────────────────────────────────────────────────────────
+function reproducirSonido(ok) {
+  try {
+    const ctx  = new (window.AudioContext || window.webkitAudioContext)();
+    const osc  = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    gain.gain.setValueAtTime(0.25, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.7);
+    osc.type = ok ? "triangle" : "sawtooth";
+    if (ok) {
+      osc.frequency.setValueAtTime(523, ctx.currentTime);
+      osc.frequency.setValueAtTime(659, ctx.currentTime + 0.15);
+      osc.frequency.setValueAtTime(784, ctx.currentTime + 0.3);
     } else {
-      revokeMain();
+      osc.frequency.setValueAtTime(294, ctx.currentTime);
+      osc.frequency.setValueAtTime(220, ctx.currentTime + 0.25);
+    }
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 0.75);
+  } catch {}
+}
+
+// ─── FINALIZAR SÍMBOLO ────────────────────────────────────────────────────────
+function finalizarSimbolo() {
+  const sim = SIMBOLOS_DATA[simboloActual];
+  if (!sesionSimbolosVistos.includes(sim.id)) sesionSimbolosVistos.push(sim.id);
+
+  saveResult({
+    usuario: `${session.nombre || ""} ${session.apellido || ""}`.trim() || "Estudiante",
+    simbolo: sim.nombre,
+    tiempoTotal: tiempoTotal(),
+    correctas,
+    incorrectas,
+    total: sim.preguntas.length
+  });
+
+  mostrarQR(sim.nombre, correctas, sim.preguntas.length);
+}
+
+// ─── ESTADO: QR ──────────────────────────────────────────────────────────────
+function mostrarQR(nombre, corr, total) {
+  mostrarSeccion("qr");
+  ocultarContador();
+
+  document.getElementById("qrResumen").innerHTML =
+    `<strong>${nombre}</strong> · <span style="color:#22c55e;">${corr}✓</span> / ${total} preguntas · ⏱ ${tiempoTotal()}`;
+
+  const container = document.getElementById("qrCanvas");
+  container.innerHTML = "";
+  try {
+    new QRCode(container, {
+      text: "https://linktr.ee/sanagustin_experiencia",
+      width: 180,
+      height: 180,
+      colorDark: "#0b1020",
+      colorLight: "#e9eeff",
+      correctLevel: QRCode.CorrectLevel.M
+    });
+  } catch {
+    container.innerHTML = `<img src="assets/qrppt.png" style="width:180px;height:180px;object-fit:contain;">`;
+  }
+
+  const audioQr = document.getElementById("audioQr");
+  if (audioQr) { audioQr.volume = 0.25; audioQr.play().catch(() => {}); }
+
+  document.getElementById("btnSeguir").onclick = () => {
+    if (audioQr) { audioQr.pause(); audioQr.currentTime = 0; }
+    iniciarSimbolos();
+  };
+}
+
+// ─── Audio / subtítulos (misma configuración que el panel Audios del admin) ──
+let _urnaObjUrlMain = null;
+let _urnaObjUrlAd = null;
+let urnaAdActive = false;
+let urnaSubsVisible = true;
+
+function revokeUrnaMainUrl() {
+  if (_urnaObjUrlMain) {
+    URL.revokeObjectURL(_urnaObjUrlMain);
+    _urnaObjUrlMain = null;
+  }
+}
+function revokeUrnaAdUrl() {
+  if (_urnaObjUrlAd) {
+    URL.revokeObjectURL(_urnaObjUrlAd);
+    _urnaObjUrlAd = null;
+  }
+}
+
+function urnaAudioMainEl() {
+  return document.getElementById("urnaAudioMain");
+}
+function urnaAudioAdEl() {
+  return document.getElementById("urnaAudioAD");
+}
+
+async function wireUrnaAudioFromState(st) {
+  const audioMain = urnaAudioMainEl();
+  const audioAD = urnaAudioAdEl();
+  if (!audioMain || !audioAD) return;
+
+  if (st.audio?.mainUrlPath) {
+    revokeUrnaMainUrl();
+    audioMain.src = st.audio.mainUrlPath;
+  } else if (st.audio?.mainBlobKey) {
+    revokeUrnaMainUrl();
+    const b = await idbGet(st.audio.mainBlobKey);
+    if (b instanceof Blob) {
+      _urnaObjUrlMain = URL.createObjectURL(b);
+      audioMain.src = _urnaObjUrlMain;
+    } else {
       audioMain.removeAttribute("src");
     }
+  } else if (st.audio?.mainDataUrl) {
+    revokeUrnaMainUrl();
+    audioMain.src = st.audio.mainDataUrl;
+  } else {
+    revokeUrnaMainUrl();
+    audioMain.removeAttribute("src");
+  }
 
-    if (st.audio?.adUrlPath) {
-      revokeAD();
-      audioAD.src = st.audio.adUrlPath;
-    } else if (st.audio?.adBlobKey) {
-      revokeAD();
-      const b = await idbGet(st.audio.adBlobKey);
-      if (b instanceof Blob) {
-        _objUrlAudioAD = URL.createObjectURL(b);
-        audioAD.src = _objUrlAudioAD;
-      } else {
-        audioAD.removeAttribute("src");
-      }
-    } else if (st.audio?.adDataUrl) {
-      revokeAD();
-      audioAD.src = st.audio.adDataUrl;
+  if (st.audio?.adUrlPath) {
+    revokeUrnaAdUrl();
+    audioAD.src = st.audio.adUrlPath;
+  } else if (st.audio?.adBlobKey) {
+    revokeUrnaAdUrl();
+    const b = await idbGet(st.audio.adBlobKey);
+    if (b instanceof Blob) {
+      _urnaObjUrlAd = URL.createObjectURL(b);
+      audioAD.src = _urnaObjUrlAd;
     } else {
-      revokeAD();
       audioAD.removeAttribute("src");
     }
-
-    if (st.audio?.imageBlobKey) {
-      revokeImg();
-      const b = await idbGet(st.audio.imageBlobKey);
-      if (b instanceof Blob) {
-        _objUrlImage = URL.createObjectURL(b);
-        previewAudioImg.src = _objUrlImage;
-        previewAudioImg.hidden = false;
-      } else {
-        previewAudioImg.removeAttribute("src");
-        previewAudioImg.hidden = true;
-      }
-    } else if (st.audio?.imageDataUrl) {
-      revokeImg();
-      previewAudioImg.src = st.audio.imageDataUrl;
-      previewAudioImg.hidden = false;
-    } else {
-      revokeImg();
-      previewAudioImg.removeAttribute("src");
-      previewAudioImg.hidden = true;
-    }
-
-    if (audioMain.src) {
-      try {
-        audioMain.load();
-      } catch (e) {
-        console.warn("audioMain.load", e);
-      }
-    }
-    if (audioAD.src) {
-      try {
-        audioAD.load();
-      } catch (e) {
-        console.warn("audioAD.load", e);
-      }
-    }
-    layout(st);
-    onAudioTime();
+  } else if (st.audio?.adDataUrl) {
+    revokeUrnaAdUrl();
+    audioAD.src = st.audio.adDataUrl;
+  } else {
+    revokeUrnaAdUrl();
+    audioAD.removeAttribute("src");
   }
 
-  function wireAnimAudio(st) {
-    if (st.animAudioMainUrl) audioAnim.src = st.animAudioMainUrl;
-    if (st.animAudioADUrl) audioAnimAD.src = st.animAudioADUrl;
-  }
-
-  document.getElementById("pvPlay").onclick = () => {
-    const st = getAppState();
-    const hasMain = !!(st.audio?.mainDataUrl || st.audio?.mainUrlPath || st.audio?.mainBlobKey);
-    const hasAd = !!(st.audio?.adDataUrl || st.audio?.adUrlPath || st.audio?.adBlobKey);
-    const use = adActive && hasAd ? audioAD : hasMain ? audioMain : hasAd ? audioAD : audioMain;
-    const o = use === audioAD ? audioMain : audioAD;
-    o.pause();
-    playWhenReady(use).catch(() => {
-      subtitleEl.textContent = "No hay audio cargado por el administrador.";
-    });
-  };
-  document.getElementById("pvPause").onclick = () => {
-    audioMain.pause();
-    audioAD.pause();
-    ensureSubtitleTicker();
-  };
-  document.getElementById("pvRestart").onclick = () => {
-    const st = getAppState();
-    const hasAd = !!(st.audio?.adDataUrl || st.audio?.adUrlPath || st.audio?.adBlobKey);
-    const active = adActive && hasAd ? audioAD : audioMain;
-    const other = active === audioAD ? audioMain : audioAD;
-    other.pause();
-    active.currentTime = 0;
-    if (active.src) {
-      playWhenReady(active).catch(() => {
-        subtitleEl.textContent = "No hay audio cargado por el administrador.";
-      });
-    }
-    ensureSubtitleTicker();
-  };
-  document.getElementById("pvToggleAD").onclick = () => {
-    const btn = document.getElementById("pvToggleAD");
-    subsVisible = !subsVisible;
-    btn.classList.toggle("btn-active", subsVisible);
-    if (!subsVisible) {
-      subtitleEl.textContent = "";
-    } else {
-      onAudioTime();
-    }
-    ensureSubtitleTicker();
-  };
-
-  function animSubsForStudent() {
-    const st = getAppState();
-    return st.animSubtitlesMain?.length ? st.animSubtitlesMain : defaultAnimSubsMain();
-  }
-
-  function updateAnimSubtitleStudent() {
-    if (!animSubtitleEl) return;
-    const st = getAppState();
-    if ((st.lastPanel || "modelos") !== "animaciones") return;
-    const a = audioAnim;
-    const t = a.currentTime || 0;
-    const subs = animSubsForStudent() || [];
-    let text = "";
-    for (const s of subs) {
-      if (t >= s.start && t < s.end) {
-        text = s.text;
-        break;
-      }
-    }
-    animSubtitleEl.textContent = text || (a.paused ? "Pausado" : "");
-  }
-
-  audioAnim.addEventListener("timeupdate", updateAnimSubtitleStudent);
-  audioAnimAD.addEventListener("timeupdate", updateAnimSubtitleStudent);
-
-  async function refreshFromAdmin() {
-    await pullAppStateFromIdbOnly();
-    const st2 = getAppState();
-    layout(st2);
-    await loadModel(st2);
-    await wireAudio(st2);
-    loadAnim(st2);
-    wireAnimAudio(st2);
-    adActive = false;
-    subsVisible = true;
-    document.getElementById("pvToggleAD")?.classList.remove("btn-active");
-    updateAnimSubtitleStudent();
-  }
-
-  (async function init() {
-    const st = getAppState();
-    layout(st);
-    await loadModel(st);
-    await wireAudio(st);
-    loadAnim(st);
-    wireAnimAudio(st);
+  if (audioMain.src) {
     try {
-      const bc = new BroadcastChannel(SYNC_CHANNEL);
-      bc.onmessage = () => {
-        refreshFromAdmin();
-      };
-    } catch {}
-  })();
+      audioMain.load();
+    } catch {
+      /* ignore */
+    }
+  }
+  if (audioAD.src) {
+    try {
+      audioAD.load();
+    } catch {
+      /* ignore */
+    }
+  }
 }
+
+function playWhenReadyUrna(media) {
+  if (!media?.src) return Promise.reject(new Error("sin audio"));
+  const run = () => media.play();
+  if (media.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA) return run();
+  return new Promise((resolve, reject) => {
+    const onErr = () => {
+      media.removeEventListener("canplay", onOk);
+      reject(media.error || new Error("error de audio"));
+    };
+    const onOk = () => {
+      media.removeEventListener("error", onErr);
+      run().then(resolve).catch(reject);
+    };
+    media.addEventListener("canplay", onOk, { once: true });
+    media.addEventListener("error", onErr, { once: true });
+  });
+}
+
+function currentUrnaSubtitles() {
+  const st = getAppState();
+  if (urnaAdActive) {
+    if (Array.isArray(st.subtitlesAD) && st.subtitlesAD.length) return st.subtitlesAD;
+    if (Array.isArray(st.subtitlesMain) && st.subtitlesMain.length) return st.subtitlesMain;
+    return [];
+  }
+  return st.subtitlesMain || [];
+}
+
+function updateUrnaSubtitle() {
+  const el = document.getElementById("urnaSubtitle");
+  if (!el) return;
+  const st = getAppState();
+  const hasAd = !!(st.audio?.adDataUrl || st.audio?.adUrlPath || st.audio?.adBlobKey);
+  if (!hasAd && !urnaSubsVisible) {
+    el.textContent = "";
+    el.hidden = true;
+    return;
+  }
+  const a = urnaAdActive ? urnaAudioAdEl() : urnaAudioMainEl();
+  if (!a) return;
+  const t = a.currentTime;
+  const subs = currentUrnaSubtitles();
+  const text = pickSubtitleAtTime(subs, t);
+  const line = text || (a.paused ? "" : "");
+  if (!urnaSubsVisible) {
+    el.hidden = true;
+    el.textContent = "";
+    return;
+  }
+  el.textContent = line;
+  el.hidden = !line;
+}
+
+function syncUrnaPlayPauseLabel() {
+  const btn = document.getElementById("urnaBtnPlayPause");
+  const main = urnaAudioMainEl();
+  const ad = urnaAudioAdEl();
+  if (!btn || !main) return;
+  const st = getAppState();
+  const hasAd = !!(st.audio?.adDataUrl || st.audio?.adUrlPath || st.audio?.adBlobKey);
+  const use = urnaAdActive && hasAd ? ad : main;
+  const btnRestart = document.getElementById("urnaBtnRestart");
+  if (!main.src) {
+    btn.disabled = true;
+    btn.textContent = "Sin audio";
+    if (btnRestart) btnRestart.disabled = true;
+    return;
+  }
+  btn.disabled = false;
+  if (btnRestart) btnRestart.disabled = false;
+  const playing = use && !use.paused;
+  btn.textContent = playing ? "Pausar" : "Reproducir";
+}
+
+function bindUrnaAudioSubtitleSync() {
+  const main = urnaAudioMainEl();
+  const ad = urnaAudioAdEl();
+  if (!main || !ad) return;
+  ["timeupdate", "play", "pause", "seeked", "loadedmetadata"].forEach((ev) => {
+    main.addEventListener(ev, () => {
+      updateUrnaSubtitle();
+      syncUrnaPlayPauseLabel();
+    });
+    ad.addEventListener(ev, () => {
+      updateUrnaSubtitle();
+      syncUrnaPlayPauseLabel();
+    });
+  });
+}
+
+function setupUrnaMediaControls() {
+  const btnPlay = document.getElementById("urnaBtnPlayPause");
+  const btnSubs = document.getElementById("urnaBtnSubs");
+  const btnAD = document.getElementById("urnaBtnAD");
+  const st = getAppState();
+  const hasAd = !!(st.audio?.adDataUrl || st.audio?.adUrlPath || st.audio?.adBlobKey);
+
+  if (btnAD) {
+    btnAD.hidden = !hasAd;
+    btnAD.classList.toggle("btn-active", urnaAdActive);
+  }
+
+  btnPlay?.addEventListener("click", () => {
+    const main = urnaAudioMainEl();
+    const ad = urnaAudioAdEl();
+    if (!main?.src) return;
+    const useHasAd = !!(getAppState().audio?.adDataUrl || getAppState().audio?.adUrlPath || getAppState().audio?.adBlobKey);
+    const use = urnaAdActive && useHasAd ? ad : main;
+    const other = urnaAdActive && useHasAd ? main : ad;
+    if (use.paused) {
+      other.pause();
+      playWhenReadyUrna(use).catch(() => {});
+    } else {
+      use.pause();
+    }
+    updateUrnaSubtitle();
+    syncUrnaPlayPauseLabel();
+  });
+
+  document.getElementById("urnaBtnRestart")?.addEventListener("click", () => {
+    const main = urnaAudioMainEl();
+    const ad = urnaAudioAdEl();
+    if (!main?.src) return;
+    const useHasAd = !!(getAppState().audio?.adDataUrl || getAppState().audio?.adUrlPath || getAppState().audio?.adBlobKey);
+    const use = urnaAdActive && useHasAd ? ad : main;
+    const other = urnaAdActive && useHasAd ? main : ad;
+    main.currentTime = 0;
+    ad.currentTime = 0;
+    other.pause();
+    playWhenReadyUrna(use).catch(() => {});
+    updateUrnaSubtitle();
+    syncUrnaPlayPauseLabel();
+  });
+
+  btnSubs?.addEventListener("click", () => {
+    urnaSubsVisible = !urnaSubsVisible;
+    btnSubs.classList.toggle("btn-active", urnaSubsVisible);
+    updateUrnaSubtitle();
+  });
+
+  btnAD?.addEventListener("click", () => {
+    if (!hasAd) return;
+    const main = urnaAudioMainEl();
+    const ad = urnaAudioAdEl();
+    if (!main || !ad) return;
+    const t = urnaAdActive ? ad.currentTime : main.currentTime;
+    main.pause();
+    ad.pause();
+    urnaAdActive = !urnaAdActive;
+    if (urnaAdActive) {
+      if (!ad.src) {
+        urnaAdActive = false;
+        return;
+      }
+      ad.currentTime = t;
+      playWhenReadyUrna(ad).catch(() => {});
+    } else {
+      main.currentTime = t;
+      if (main.src) playWhenReadyUrna(main).catch(() => {});
+    }
+    btnAD.classList.toggle("btn-active", urnaAdActive);
+    updateUrnaSubtitle();
+    syncUrnaPlayPauseLabel();
+  });
+
+  syncUrnaPlayPauseLabel();
+  updateUrnaSubtitle();
+}
+
+function pauseUrnaMedia() {
+  urnaAudioMainEl()?.pause();
+  urnaAudioAdEl()?.pause();
+  syncUrnaPlayPauseLabel();
+}
+
+async function initUrnaMediaFromProject() {
+  try {
+    await hydrateAppStateFromStorage();
+    await wireUrnaAudioFromState(getAppState());
+    bindUrnaAudioSubtitleSync();
+    setupUrnaMediaControls();
+  } catch (e) {
+    console.warn("initUrnaMediaFromProject", e);
+  }
+}
+
+// ─── ARRANCAR ────────────────────────────────────────────────────────────────
+initUrnaMediaFromProject().finally(() => {
+  iniciarUrna();
+});

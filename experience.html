@@ -8,7 +8,8 @@
   <script type="importmap">
   {
     "imports": {
-      "three": "https://cdn.jsdelivr.net/npm/three@0.164/build/three.module.js"
+      "three": "https://cdn.jsdelivr.net/npm/three@0.164/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.164/examples/jsm/"
     }
   }
   </script>
@@ -42,6 +43,9 @@
       <button type="button" class="btn menu-btn active" data-panel="modelos">Modelos</button>
       <button type="button" class="btn menu-btn" data-panel="audios">Audios</button>
       <button type="button" class="btn menu-btn" data-panel="animaciones">Animaciones</button>
+      <button type="button" class="btn menu-btn" data-panel="juego">Juego</button>
+      <button type="button" class="btn menu-btn" data-panel="reportes">Reportes</button>
+      <button type="button" class="btn menu-btn" data-panel="testimonios">Testimonios</button>
     </div>
   </section>
 
@@ -97,11 +101,13 @@
       <div class="row wrap">
         <button type="button" id="clearAudioMain" class="btn secondary">Quitar audio principal</button>
         <button type="button" id="clearAudioAD" class="btn secondary">Quitar audiodescripción</button>
+        <button type="button" id="clearAudioImg" class="btn secondary">Quitar imagen (urna)</button>
       </div>
 
       <div class="stack row-gap">
         <button type="button" id="playAudio" class="btn">Iniciar</button>
         <button type="button" id="pauseAudio" class="btn secondary">Pausar</button>
+        <button type="button" id="restartUrnaAudio" class="btn secondary">Reiniciar audio</button>
         <button type="button" id="toggleAD" class="btn secondary">
           Audiodescripción / subtítulos
         </button>
@@ -111,6 +117,25 @@
 
       <audio id="audioMain" preload="auto" playsinline></audio>
       <audio id="audioAD" preload="auto" playsinline></audio>
+    </div>
+
+    <!-- JUEGO (solo lectura) -->
+    <div id="panel-juego" class="content-panel">
+      <h2 class="h2 h2-center">Juego — Contenido</h2>
+      <p class="muted small-gap">Vista de los símbolos, preguntas, respuestas y justificaciones. Solo lectura.</p>
+      <div id="juegoContent" class="stack"></div>
+    </div>
+
+    <!-- REPORTES -->
+    <div id="panel-reportes" class="content-panel">
+      <h2 class="h2 h2-center">Reportes de usuarios</h2>
+      <div id="reportesContent"></div>
+    </div>
+
+    <!-- TESTIMONIOS -->
+    <div id="panel-testimonios" class="content-panel">
+      <h2 class="h2 h2-center">Testimonios</h2>
+      <div id="testimoniosContent"></div>
     </div>
 
     <!-- ANIMACIONES -->
@@ -141,6 +166,7 @@
         <label class="btn secondary file-label small-label" for="fileAnimAudioAD">Audiodesc. animación</label>
 
         <button type="button" id="toggleAnimAD" class="btn secondary">AD / subtítulos anim.</button>
+        <button type="button" id="btnAnimAudioRestart" class="btn secondary">Reiniciar audio anim.</button>
       </div>
     </div>
 
@@ -152,6 +178,15 @@
 
     <div class="preview-flow">
       <div class="previewStack" id="previewStack">
+        <div id="previewIdlePanel" class="preview-idle-panel" hidden>
+          <div class="preview-idle-inner">
+            <p class="preview-idle-title">Vista previa 3D</p>
+            <p class="preview-idle-text">
+              En <strong>Reportes</strong>, <strong>Juego</strong> y <strong>Testimonios</strong> no se muestra la escena.
+              Usa <strong>Modelos</strong>, <strong>Audios</strong> o <strong>Animaciones</strong> para previsualizar aquí.
+            </p>
+          </div>
+        </div>
         <canvas id="threeCanvas"></canvas>
         <img id="previewAudioImg" class="preview-layer preview-layer-top" hidden />
         <video id="previewAnimVideo" class="preview-layer preview-layer-top" playsinline hidden></video>
@@ -160,12 +195,14 @@
 
       <p id="previewSubtitle" class="subtitle-box preview-subtitle" hidden></p>
       <p id="previewAnimSubtitlePublic" class="subtitle-box preview-subtitle" hidden></p>
-      <p class="badge badge-center">Vista previa</p>
+      <p class="badge badge-center" id="previewBadge">Vista previa</p>
     </div>
   </section>
 
 </main>
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="js/simbolos-data.js"></script>
 <script type="module">
   import { hydrateAppStateFromStorage } from "./js/state.js";
   await hydrateAppStateFromStorage();

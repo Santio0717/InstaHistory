@@ -1,66 +1,198 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>InstaHistory — Vista estudiante</title>
-  <script type="importmap">
-  {
-    "imports": {
-      "three": "https://cdn.jsdelivr.net/npm/three@0.164/build/three.module.js"
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>InstaHistory — Experiencia</title>
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.164/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.164/examples/jsm/"
   }
-  </script>
-  <link rel="stylesheet" href="css/styles.css" />
-  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
-</head>
-<body class="bg preview-body">
-
-<header class="topbar">
-  <div class="brand">
-    <span class="dot"></span>
-    <strong>InstaHistory</strong>
-    <span class="muted">| Vista previa</span>
-  </div>
-  <nav class="actions">
-    <a href="qr.html" class="btn secondary">Ir a QR</a>
-    <button type="button" class="btn danger" id="btnLogout">Salir</button>
-  </nav>
-</header>
-
-<main class="preview-only-main">
-  <h2 class="h2 h2-center">Vista previa</h2>
-  <p id="previewHint" class="muted small-gap"></p>
-
-  <div class="preview-flow">
-    <div class="previewStack preview-stack-large" id="previewStack">
-      <canvas id="threeCanvas"></canvas>
-      <img id="previewAudioImg" class="preview-layer preview-layer-top" alt="Imagen urna" hidden />
-      <video id="previewAnimVideo" class="preview-layer preview-layer-top" playsinline hidden></video>
-      <img id="previewAnimGif" class="preview-layer preview-layer-top" alt="" hidden />
-    </div>
-
-    <div class="student-controls" id="studentControls" hidden>
-      <button type="button" class="btn" id="pvPlay">Iniciar</button>
-      <button type="button" class="btn secondary" id="pvPause">Pausar</button>
-      <button type="button" class="btn secondary" id="pvRestart">Reiniciar</button>
-      <button type="button" class="btn secondary" id="pvToggleAD" title="Activa o desactiva subtítulos. Si existe pista AD, alterna entre narración y audiodescripción.">Subtítulos ON/OFF</button>
-    </div>
-
-    <p id="subtitle" class="subtitle-box student-subtitle" hidden></p>
-    <p id="animSubtitle" class="subtitle-box student-subtitle" hidden></p>
-  </div>
-
-  <audio id="audioMain" preload="auto" playsinline></audio>
-  <audio id="audioAD" preload="auto" playsinline></audio>
-  <audio id="audioAnim" preload="metadata"></audio>
-  <audio id="audioAnimAD" preload="metadata"></audio>
-</main>
-
-<script type="module">
-  import { hydrateAppStateFromStorage } from "./js/state.js";
-  await hydrateAppStateFromStorage();
-  await import("./js/preview.js");
+}
 </script>
+<link rel="stylesheet" href="css/styles.css">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<style>
+  /* ── Pantalla de carga ── */
+  #loadingScreen {
+    position: fixed;
+    inset: 0;
+    background: #0b1020;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    transition: opacity 0.5s ease;
+  }
+  #loadingScreen.fade-out {
+    opacity: 0;
+    pointer-events: none;
+  }
+  .loading-logo {
+    font-size: 2rem;
+    font-weight: 800;
+    color: #6aa9ff;
+    letter-spacing: 0.1em;
+  }
+  .loading-bar-wrap {
+    width: 200px;
+    height: 4px;
+    background: #1a2338;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .loading-bar {
+    height: 100%;
+    background: #6aa9ff;
+    border-radius: 4px;
+    animation: loadBar 1.2s ease-in-out infinite alternate;
+  }
+  @keyframes loadBar {
+    from { width: 20%; }
+    to   { width: 90%; }
+  }
+  .loading-text {
+    font-size: 0.85rem;
+    color: #a8b2d6;
+  }
+</style>
+</head>
+
+<body class="bg exp-body">
+
+<!-- Pantalla de carga -->
+<div id="loadingScreen">
+  <div class="loading-logo">InstaHistory</div>
+  <div class="loading-bar-wrap"><div class="loading-bar"></div></div>
+  <p class="loading-text">Cargando experiencia…</p>
+</div>
+
+<!-- HUD superior -->
+<div id="expHud" class="exp-hud" style="opacity:0;transition:opacity 0.4s;">
+  <div class="exp-hud-left">
+    <div class="hud-brand">
+      <span class="dot"></span>
+      <span class="hud-brand-name">InstaHistory</span>
+    </div>
+  </div>
+  <div class="exp-hud-center">
+    <span id="cronometro" class="exp-cronometro">00:00</span>
+  </div>
+  <div class="exp-hud-right">
+    <span id="contadorPreguntas" class="exp-contador" style="visibility:hidden;">1/3</span>
+    <button type="button" class="btn secondary small" id="btnHeaderQr">Ver QR</button>
+    <button class="btn secondary small" id="btnLogoutExp">Salir</button>
+  </div>
+</div>
+
+<!-- ── ESTADO: URNA ── -->
+<section id="seccionUrna" class="exp-section exp-section--urna" style="display:none;">
+  <div id="urnaCanvasWrap" class="urna-canvas-wrap">
+    <canvas id="urnaCanvas"></canvas>
+
+    <!-- Overlay de bienvenida dentro de la urna -->
+    <div class="urna-welcome" id="urnaWelcome">
+      <p class="urna-welcome-text" id="urnaWelcomeUser"></p>
+    </div>
+
+    <!-- Badge de countdown -->
+    <div id="urnaCountdown" class="urna-countdown"></div>
+
+    <audio id="urnaAudioMain" preload="metadata" playsinline></audio>
+    <audio id="urnaAudioAD" preload="metadata" playsinline></audio>
+
+    <p id="urnaSubtitle" class="urna-subtitle" hidden></p>
+
+    <div class="urna-media-bar" id="urnaMediaBar">
+      <button type="button" class="btn secondary small" id="urnaBtnPlayPause" disabled>Reproducir</button>
+      <button type="button" class="btn secondary small" id="urnaBtnRestart" disabled>Reiniciar</button>
+      <button type="button" class="btn secondary small btn-active" id="urnaBtnSubs">Subtítulos</button>
+      <button type="button" class="btn secondary small" id="urnaBtnAD" hidden>Audiodescripción</button>
+    </div>
+
+    <!-- Hint de control -->
+    <div class="urna-hint">
+      <span>Ratón: arrastra para rotar, rueda para zoom · Teclado: flechas, + / − · Mando: joystick y R1/L1</span>
+    </div>
+  </div>
+</section>
+
+<!-- ── ESTADO: SÍMBOLOS ── -->
+<section id="seccionSimbolos" class="exp-section exp-section--simbolos" style="display:none;">
+  <div class="simbolos-header">
+    <h2 class="exp-title">Elige un símbolo</h2>
+    <p class="exp-subtitle">Explora cada símbolo y responde las preguntas</p>
+  </div>
+  <div id="simbolosGrid" class="simbolos-grid"></div>
+  <p class="exp-hint-ctrl">Flechas ← → o mando · <strong>Enter</strong>, espacio o clic para seleccionar</p>
+</section>
+
+<!-- ── ESTADO: PREGUNTA ── -->
+<section id="seccionPregunta" class="exp-section exp-section--pregunta" style="display:none;">
+  <div class="pregunta-wrap">
+    <div class="pregunta-card">
+      <div class="pregunta-card-top">
+        <span id="preguntaSimboloNombre" class="pregunta-simbolo-tag"></span>
+        <span id="preguntaContador" class="pregunta-contador">1 / 3</span>
+      </div>
+      <p id="preguntaTexto" class="pregunta-texto"></p>
+      <div id="opcionesWrap" class="opciones-wrap"></div>
+    </div>
+    <p class="exp-hint-ctrl">Flechas ↑ ↓ o mando · <strong>Enter</strong>, espacio o clic para responder</p>
+  </div>
+</section>
+
+<!-- ── ESTADO: FEEDBACK ── -->
+<section id="seccionFeedback" class="exp-section exp-section--feedback" style="display:none;">
+  <div class="feedback-card">
+    <div id="feedbackIconWrap" class="feedback-icon-wrap">
+      <div id="feedbackIcon" class="feedback-icon"></div>
+    </div>
+    <p id="feedbackMensaje" class="feedback-mensaje"></p>
+    <div id="feedbackJustificacion" class="feedback-justificacion"></div>
+    <p class="exp-hint-ctrl">Enter, espacio, mando o clic para continuar</p>
+    <button class="btn btn-siguiente" id="btnSiguiente">Siguiente ▶</button>
+  </div>
+</section>
+
+<!-- ── ESTADO: QR ── -->
+<section id="seccionQr" class="exp-section exp-section--qr" style="display:none;">
+  <div class="qr-exp-card">
+    <div class="qr-exp-top">
+      <div class="qr-trofeo">🏆</div>
+      <h2 class="exp-title">¡Bien hecho!</h2>
+      <p class="exp-subtitle" id="qrResumen"></p>
+    </div>
+    <div class="qr-exp-middle">
+      <div id="qrCanvas" class="qr-exp-canvas"></div>
+      <p class="qr-exp-instruccion">Escanea con tu celular</p>
+    </div>
+    <div class="qr-exp-actions">
+      <button class="btn btn-seguir" id="btnSeguir">▶️ Seguir explorando</button>
+    </div>
+  </div>
+</section>
+
+<audio id="audioQr" src="audio/fondo-qr.mp3" preload="none" loop></audio>
+
+<div id="expQrOverlay" class="exp-qr-overlay" hidden>
+  <div class="exp-qr-backdrop" id="expQrBackdrop" role="presentation"></div>
+  <div class="exp-qr-dialog" role="dialog" aria-modal="true" aria-labelledby="expQrTitle">
+    <button type="button" class="btn secondary small exp-qr-close" id="expQrOverlayClose">Cerrar</button>
+    <h2 id="expQrTitle" class="exp-qr-title">Código QR</h2>
+    <p class="muted exp-qr-desc">Escanea con tu celular para abrir el contenido.</p>
+    <div id="expQrModalHost" class="exp-qr-host"></div>
+    <a class="link exp-qr-link" href="https://linktr.ee/sanagustin_experiencia" target="_blank" rel="noopener noreferrer">Abrir enlace</a>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="js/simbolos-data.js"></script>
+<script type="module" src="js/preview.js"></script>
+
 </body>
 </html>
