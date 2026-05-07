@@ -1,7 +1,7 @@
 const SIMBOLOS_DATA = [
   {
     id: 1,
-    nombre: "Urna Funeraria",
+    nombre: "Historia de la cultura",
     imagen: "simbolos/simbolo1.png",
     preguntas: [
       {
@@ -41,7 +41,7 @@ const SIMBOLOS_DATA = [
   },
   {
     id: 2,
-    nombre: "Estatua Funeraria",
+    nombre: "Cosmovisión y creencias",
     imagen: "simbolos/simbolo2.png",
     preguntas: [
       {
@@ -81,7 +81,7 @@ const SIMBOLOS_DATA = [
   },
   {
     id: 3,
-    nombre: "Máscara Ceremonial",
+    nombre: "Muerte (Rituales funerarios)",
     imagen: "simbolos/simbolo3.png",
     preguntas: [
       {
