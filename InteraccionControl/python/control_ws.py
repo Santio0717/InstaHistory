@@ -7,8 +7,30 @@ WS_URL = "ws://localhost:8080"
 
 print("🚀 Iniciando control...")
 
-# Guardar últimos valores para evitar spam
-last_values = {}
+AXIS_CODES = ["ABS_X", "ABS_Y"]
+
+CENTER = 128
+DEADZONE = 22
+MIN_AXIS_CHANGE = 4
+AXIS_INTERVAL = 0.025
+
+BUTTON_CODES = ["BTN_TR", "BTN_TL", "BTN_NORTH"]
+
+last_axis_values = {
+    "ABS_X": CENTER,
+    "ABS_Y": CENTER
+}
+
+last_axis_time = 0
+
+def normalize_axis(value):
+    if abs(value - CENTER) < DEADZONE:
+        return CENTER
+
+    return value
+
+def send_json(ws, data):
+    ws.send(json.dumps(data))
 
 while True:
     try:
@@ -16,74 +38,63 @@ while True:
         ws = websocket.create_connection(WS_URL)
         print("✅ Conectado al WebSocket")
 
-        last_time = 0
-
         while True:
             events = get_gamepad()
 
             for event in events:
-                if event.ev_type in ["Absolute", "Key"]:
+                current_time = time.time()
 
-                    # ⏱️ Control de frecuencia (máx ~50 FPS)
-                    current_time = time.time()
-                    if current_time - last_time < 0.02:
+                # ==============================
+                # JOYSTICK
+                # ==============================
+                if event.ev_type == "Absolute" and event.code in AXIS_CODES:
+                    value = normalize_axis(event.state)
+
+                    previous = last_axis_values.get(event.code, CENTER)
+
+                    if abs(previous - value) < MIN_AXIS_CHANGE:
                         continue
 
-                    # 🔍 Filtro de cambios (deadzone básica)
-                    prev = last_values.get(event.code)
+                    if current_time - last_axis_time < AXIS_INTERVAL:
+                        continue
 
-                    if event.ev_type == "Absolute":
-                        # 🎮 Joystick
-                        prev = last_values.get(event.code)
+                    last_axis_values[event.code] = value
+                    last_axis_time = current_time
 
-                        if prev is None or abs(prev - event.state) > 2:
-                            last_values[event.code] = event.state
+                    data = {
+                        "code": event.code,
+                        "value": value
+                    }
 
-                            data = {
-                                "code": event.code,
-                                "value": event.state
-                            }
+                    send_json(ws, data)
+                    print("📤", data)
 
-                            ws.send(json.dumps(data))
+                # ==============================
+                # BOTONES
+                # ==============================
+                elif event.ev_type == "Key":
+                    data = {
+                        "code": event.code,
+                        "value": event.state
+                    }
 
-                            if event.code in ["ABS_X", "ABS_Y"]:
-                                print("📤", data)
+                    if event.code == "BTN_TR":
+                        data["action"] = "zoom_in"
+                        send_json(ws, data)
+                        print("🔍 ZOOM IN (R1)", data)
 
-                            last_time = current_time
+                    elif event.code == "BTN_TL":
+                        data["action"] = "zoom_out"
+                        send_json(ws, data)
+                        print("🔍 ZOOM OUT (L1)", data)
 
+                    elif event.code == "BTN_NORTH":
+                        send_json(ws, data)
+                        print("🔘 BRILLO:", data)
 
-                    elif event.ev_type == "Key":
-
-                        # 🔘 🎮 BOTONES + ZOOM (R1 / L1)
-                        if event.code == "BTN_TR":
-                            data = {
-                                "code": event.code,
-                                "action": "zoom_in",
-                                "value": event.state
-                            }
-                            ws.send(json.dumps(data))
-                            print("🔍 ZOOM IN (R1)", data)
-
-                        elif event.code == "BTN_TL":
-                            data = {
-                                "code": event.code,
-                                "action": "zoom_out",
-                                "value": event.state
-                            }
-                            ws.send(json.dumps(data))
-                            print("🔍 ZOOM OUT (L1)", data)
-
-                        else:
-                            # 🔘 otros botones normales
-                            data = {
-                                "code": event.code,
-                                "value": event.state
-                            }
-
-                            ws.send(json.dumps(data))
-                            print("🔘 BOTÓN:", data)
-
-                        last_time = current_time
+                    else:
+                        send_json(ws, data)
+                        print("🔘 BOTÓN:", data)
 
     except Exception as e:
         print("❌ Error:", e)
