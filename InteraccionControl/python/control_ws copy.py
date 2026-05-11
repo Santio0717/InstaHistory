@@ -33,7 +33,7 @@ while True:
                     prev = last_values.get(event.code)
 
                     if event.ev_type == "Absolute":
-                        # 🎮 Joystick (sí usamos filtro)
+                        # 🎮 Joystick
                         prev = last_values.get(event.code)
 
                         if prev is None or abs(prev - event.state) > 2:
@@ -53,15 +53,35 @@ while True:
 
 
                     elif event.ev_type == "Key":
-                        # 🔘 BOTONES (sin filtro)
-                        data = {
-                            "code": event.code,
-                            "value": event.state
-                        }
 
-                        ws.send(json.dumps(data))
+                        # 🔘 🎮 BOTONES + ZOOM (R1 / L1)
+                        if event.code == "BTN_TR":
+                            data = {
+                                "code": event.code,
+                                "action": "zoom_in",
+                                "value": event.state
+                            }
+                            ws.send(json.dumps(data))
+                            print("🔍 ZOOM IN (R1)", data)
 
-                        print("🔘 BOTÓN:", data)
+                        elif event.code == "BTN_TL":
+                            data = {
+                                "code": event.code,
+                                "action": "zoom_out",
+                                "value": event.state
+                            }
+                            ws.send(json.dumps(data))
+                            print("🔍 ZOOM OUT (L1)", data)
+
+                        else:
+                            # 🔘 otros botones normales
+                            data = {
+                                "code": event.code,
+                                "value": event.state
+                            }
+
+                            ws.send(json.dumps(data))
+                            print("🔘 BOTÓN:", data)
 
                         last_time = current_time
 

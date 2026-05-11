@@ -1,5 +1,5 @@
 // ==============================
-// 🎮 VARIABLES DEL JOYSTICK
+// VARIABLES DEL JOYSTICK
 // ==============================
 let joyX = 0;
 let joyY = 0;
@@ -7,31 +7,32 @@ let joyY = 0;
 let smoothX = 0;
 let smoothY = 0;
 
-// 🔥 GLOBAL
-let model = null;
+// GLOBAL
+const modelClones = [];
+let modelLoaded = false;
 
-// 🎯 MODO BRILLO
+// MODO BRILLO
 let brightnessMode = false;
-let brightness = 0.2;
+let brightness = 0.8;
+let brightnessButtonPressed = false;
 
-let zoom = 8;
+let modelScale = 1.2;
 
 let zoomInActivate = false;
 let zoomOutActivate = false;
 
 // ==============================
-// 🌐 WEBSOCKET
+// WEBSOCKET
 // ==============================
 const socket = new WebSocket("ws://localhost:8080");
 
 socket.onopen = () => {
-    console.log("🟢 Conectado al WebSocket");
+    console.log("Conectado al WebSocket");
 };
 
 socket.onmessage = (event) => {
     const data = JSON.parse(event.data);
 
-    // 🎮 JOYSTICK
     if (data.code === "ABS_X") {
         joyX = (data.value - 128) / 128;
     }
@@ -40,166 +41,239 @@ socket.onmessage = (event) => {
         joyY = (data.value - 128) / 128;
     }
 
-    // 🔘 TRIÁNGULO
-    if (data.code === "BTN_NORTH" && data.value === 1) {
-        brightnessMode = !brightnessMode;
-        console.log("✨ Modo brillo:", brightnessMode ? "ON" : "OFF");
+    // Botón para activar/desactivar modo brillo
+    // Usa bloqueo para evitar doble activación al mantener presionado
+    if (data.code === "BTN_NORTH") {
+        if (data.value > 0 && !brightnessButtonPressed) {
+            brightnessButtonPressed = true;
+
+            brightnessMode = !brightnessMode;
+
+            console.log("Modo brillo:", brightnessMode ? "ON" : "OFF");
+        }
+
+        if (data.value === 0) {
+            brightnessButtonPressed = false;
+        }
     }
 
-    // 🔍 ZOOM IN (R1)
+    // Botones de zoom
+    // data.value > 0 es más estable que data.value === 1
     if (data.code === "BTN_TR") {
-        zoomInActivate = data.value === 1;
-        console.log("🔍 Zoom IN:", zoomInActivate);
+        zoomInActivate = data.value > 0;
     }
 
-    // 🔍 ZOOM OUT (L1)
     if (data.code === "BTN_TL") {
-        zoomOutActivate = data.value === 1;
-        console.log("🔍 Zoom OUT:", zoomOutActivate);
+        zoomOutActivate = data.value > 0;
     }
 };
 
 socket.onerror = (err) => {
-    console.log("❌ Error WebSocket:", err);
+    console.log("Error WebSocket:", err);
 };
 
 socket.onclose = () => {
-    console.log("🔴 WebSocket cerrado");
+    console.log("WebSocket cerrado");
 };
 
 // ==============================
-// 🧠 FUNCIONES
+// FUNCIONES
 // ==============================
 function applyDeadzone(v, threshold = 0.1) {
     return Math.abs(v) < threshold ? 0 : v;
 }
 
+function prepareModelMaterials(object) {
+    object.traverse((child) => {
+        if (child.isMesh) {
+            child.material = child.material.clone();
+
+            child.material.metalness = 0;
+            child.material.roughness = 1;
+
+            child.material.emissive = new THREE.Color(0x444444);
+            child.material.emissiveIntensity = brightness;
+
+            child.material.transparent = false;
+            child.material.opacity = 1;
+        }
+    });
+}
+
+function createCloneFromModel(source, position, rotationZ) {
+    const clone = source.clone(true);
+    prepareModelMaterials(clone);
+
+    const wrapper = new THREE.Group();
+
+    wrapper.position.copy(position);
+    wrapper.rotation.z = rotationZ;
+
+    const pivot = new THREE.Group();
+    pivot.add(clone);
+
+    wrapper.add(pivot);
+    wrapper.userData.pivot = pivot;
+
+    return wrapper;
+}
+
 // ==============================
-// 🧊 THREE.JS
+// THREE.JS
 // ==============================
 const scene = new THREE.Scene();
-
-// Fondo claro
-scene.background = new THREE.Color(0xeeeeee);
+scene.background = new THREE.Color(0xffffff);
 
 const camera = new THREE.PerspectiveCamera(
-    75,
+    60,
     window.innerWidth / window.innerHeight,
     0.1,
     1000
 );
 
-camera.position.z = zoom;
+camera.position.set(0, 0, 14);
 
-const renderer = new THREE.WebGLRenderer({ antialias: true });
+const renderer = new THREE.WebGLRenderer({
+    antialias: true,
+    alpha: true
+});
+
 renderer.setSize(window.innerWidth, window.innerHeight);
+document.body.style.margin = "0";
 document.body.appendChild(renderer.domElement);
 
 // ==============================
-// 💡 LUCES
+// LUCES
 // ==============================
-
-// Luz ambiental
-const ambientLight = new THREE.AmbientLight(0xffffff, 1);
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.55);
 scene.add(ambientLight);
 
-// Luz direccional
-const directionalLight = new THREE.DirectionalLight(0xffffff, 2);
-directionalLight.position.set(5, 10, 7);
+const directionalLight = new THREE.DirectionalLight(0xffffff, 1.2);
+directionalLight.position.set(5, 8, 6);
 scene.add(directionalLight);
 
-// Luz frontal
-const frontLight = new THREE.DirectionalLight(0xffffff, 1.5);
-frontLight.position.set(0, 0, 5);
-scene.add(frontLight);
+const rimLight = new THREE.DirectionalLight(0x88ccff, 0.6);
+rimLight.position.set(-5, 5, -5);
+scene.add(rimLight);
 
 // ==============================
-// 🧊 CARGAR MODELO
+// GRUPO HOLOGRAMA
+// ==============================
+const hologramGroup = new THREE.Group();
+scene.add(hologramGroup);
+
+// ==============================
+// CARGAR MODELO
 // ==============================
 const loader = new THREE.GLTFLoader();
 
-loader.load('../model/Urna.glb', (gltf) => {
+loader.load(
+    "../model/Urna.glb",
 
-    model = gltf.scene;
+    (gltf) => {
+        const baseModel = gltf.scene;
 
-    // 🔥 MATERIAL MEJORADO + BRILLO
-    model.traverse((child) => {
-        if (child.isMesh) {
-            child.material.metalness = 0;
-            child.material.roughness = 1;
+        baseModel.scale.set(1, 1, 1);
 
-            // CLAVE para brillo dinámico
-            child.material.emissive = new THREE.Color(0x222222);
-            child.material.emissiveIntensity = 0.5;
-        }
-    });
+        const box = new THREE.Box3().setFromObject(baseModel);
+        const center = box.getCenter(new THREE.Vector3());
 
-    // Escala
-    model.scale.set(3, 3, 3);
+        baseModel.position.sub(center);
 
-    // Centrar modelo
-    const box = new THREE.Box3().setFromObject(model);
-    const center = box.getCenter(new THREE.Vector3());
-    model.position.sub(center);
+        prepareModelMaterials(baseModel);
 
-    scene.add(model);
+        const distance = 5;
 
-    console.log("✅ Modelo cargado");
+        const cloneConfigs = [
+            {
+                position: new THREE.Vector3(0, distance, 0),
+                rotationZ: Math.PI
+            },
+            {
+                position: new THREE.Vector3(0, -distance, 0),
+                rotationZ: 0
+            },
+            {
+                position: new THREE.Vector3(-distance, 0, 0),
+                rotationZ: -Math.PI / 2
+            },
+            {
+                position: new THREE.Vector3(distance, 0, 0),
+                rotationZ: Math.PI / 2
+            }
+        ];
 
-}, undefined, (error) => {
-    console.error("❌ Error cargando modelo:", error);
-});
+        cloneConfigs.forEach((config) => {
+            const cloneGroup = createCloneFromModel(
+                baseModel,
+                config.position,
+                config.rotationZ
+            );
+
+            hologramGroup.add(cloneGroup);
+            modelClones.push(cloneGroup);
+        });
+
+        modelLoaded = true;
+
+        console.log("Modelo cargado en modo holograma");
+    },
+
+    undefined,
+
+    (error) => {
+        console.error("Error cargando modelo:", error);
+    }
+);
 
 // ==============================
-// 🔄 LOOP
+// LOOP
 // ==============================
 function animate() {
     requestAnimationFrame(animate);
 
-    let targetX = applyDeadzone(joyX);
-    let targetY = applyDeadzone(joyY);
+    const targetX = applyDeadzone(joyX);
+    const targetY = applyDeadzone(joyY);
 
-    // Suavizado
     smoothX += (targetX - smoothX) * 0.1;
     smoothY += (targetY - smoothY) * 0.1;
 
-    if (model) {
-
+    if (modelLoaded) {
         if (brightnessMode) {
-            // 🎚️ CONTROL DE BRILLO
             brightness += smoothY * 0.02;
-
-            // límites
             brightness = Math.max(0.2, Math.min(3, brightness));
 
-            model.traverse((child) => {
-                if (child.isMesh) {
-                    child.material.emissiveIntensity = brightness;
-                }
+            modelClones.forEach((cloneGroup) => {
+                cloneGroup.traverse((child) => {
+                    if (child.isMesh) {
+                        child.material.emissiveIntensity = brightness;
+                    }
+                });
             });
-
         } else {
-            // 🔄 ROTACIÓN NORMAL
-            model.rotation.y += smoothX * 0.05;
-            model.rotation.x += smoothY * 0.05;
+            modelClones.forEach((cloneGroup) => {
+                const pivot = cloneGroup.userData.pivot;
+
+                pivot.rotation.y += smoothX * 0.03;
+                // pivot.rotation.x += smoothY * 0.01;
+            });
         }
+
+        if (zoomInActivate) {
+            modelScale += 0.01;
+        }
+
+        if (zoomOutActivate) {
+            modelScale -= 0.01;
+        }
+
+        modelScale = Math.max(0.5, Math.min(2.5, modelScale));
+
+        modelClones.forEach((cloneGroup) => {
+            const pivot = cloneGroup.userData.pivot;
+            pivot.scale.set(modelScale, modelScale, modelScale);
+        });
     }
-
-    if (zoomInActivate) {
-        zoom -= 0.05;
-    }
-
-    if (zoomOutActivate) {
-        zoom += 0.05;
-    }
-
-    // límites seguros
-    zoom = Math.max(3, Math.min(20, zoom));
-
-    // suavizado
-    camera.position.z += (zoom - camera.position.z) * 0.1;
-
-    if (!model) return;
 
     renderer.render(scene, camera);
 }
@@ -207,10 +281,11 @@ function animate() {
 animate();
 
 // ==============================
-// 📱 RESPONSIVE
+// RESPONSIVE
 // ==============================
-window.addEventListener('resize', () => {
+window.addEventListener("resize", () => {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
+
     renderer.setSize(window.innerWidth, window.innerHeight);
 });
