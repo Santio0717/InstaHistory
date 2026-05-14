@@ -100,7 +100,25 @@ function prepareModelMaterials(object) {
     });
 }
 
-function createCloneFromModel(source, position, rotationZ) {
+// function createCloneFromModel(source, position, rotationZ) {
+//     const clone = source.clone(true);
+//     prepareModelMaterials(clone);
+
+//     const wrapper = new THREE.Group();
+
+//     wrapper.position.copy(position);
+//     wrapper.rotation.z = rotationZ;
+
+//     const pivot = new THREE.Group();
+//     pivot.add(clone);
+
+//     wrapper.add(pivot);
+//     wrapper.userData.pivot = pivot;
+
+//     return wrapper;
+// }
+
+function createCloneFromModel(source, position, rotationZ, modelRotationY) {
     const clone = source.clone(true);
     prepareModelMaterials(clone);
 
@@ -110,6 +128,7 @@ function createCloneFromModel(source, position, rotationZ) {
     wrapper.rotation.z = rotationZ;
 
     const pivot = new THREE.Group();
+    pivot.rotation.y = modelRotationY;
     pivot.add(clone);
 
     wrapper.add(pivot);
@@ -122,7 +141,7 @@ function createCloneFromModel(source, position, rotationZ) {
 // THREE.JS
 // ==============================
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0xffffff);
+scene.background = new THREE.Color(0x000000);
 
 const camera = new THREE.PerspectiveCamera(
     60,
@@ -145,15 +164,19 @@ document.body.appendChild(renderer.domElement);
 // ==============================
 // LUCES
 // ==============================
-const ambientLight = new THREE.AmbientLight(0xffffff, 0.55);
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.25);
 scene.add(ambientLight);
 
-const directionalLight = new THREE.DirectionalLight(0xffffff, 1.2);
-directionalLight.position.set(5, 8, 6);
+const directionalLight = new THREE.DirectionalLight(0xffffff, 2.0);
+directionalLight.position.set(4, 6, 8);
 scene.add(directionalLight);
 
-const rimLight = new THREE.DirectionalLight(0x88ccff, 0.6);
-rimLight.position.set(-5, 5, -5);
+const fillLight = new THREE.DirectionalLight(0xff8844, 0.9);
+fillLight.position.set(-6, -3, 5);
+scene.add(fillLight);
+
+const rimLight = new THREE.DirectionalLight(0x66ccff, 1.4);
+rimLight.position.set(-5, 5, -6);
 scene.add(rimLight);
 
 // ==============================
@@ -184,22 +207,52 @@ loader.load(
 
         const distance = 5;
 
+        // const cloneConfigs = [
+        //     {
+        //         position: new THREE.Vector3(0, distance, 0),
+        //         rotationZ: 0
+
+        //     },
+        //     {
+        //         position: new THREE.Vector3(0, -distance, 0),
+        //         rotationZ: Math.PI
+        //     },
+        //     {
+        //         position: new THREE.Vector3(-distance, 0, 0),
+        //         rotationZ: Math.PI / 2
+        //     },
+        //     {
+        //         position: new THREE.Vector3(distance, 0, 0),
+        //         rotationZ: -Math.PI / 2
+        //     }
+
         const cloneConfigs = [
+            // ARRIBA - vista trasera
             {
                 position: new THREE.Vector3(0, distance, 0),
-                rotationZ: Math.PI
+                rotationZ: 0,
+                modelRotationY: Math.PI
             },
+
+            // ABAJO - vista frontal
             {
                 position: new THREE.Vector3(0, -distance, 0),
-                rotationZ: 0
+                rotationZ: Math.PI,
+                modelRotationY: 0
             },
+
+            // IZQUIERDA - lateral izquierdo
             {
                 position: new THREE.Vector3(-distance, 0, 0),
-                rotationZ: -Math.PI / 2
+                rotationZ: Math.PI / 2,
+                modelRotationY: Math.PI / 2
             },
+
+            // DERECHA - lateral derecho
             {
                 position: new THREE.Vector3(distance, 0, 0),
-                rotationZ: Math.PI / 2
+                rotationZ: -Math.PI / 2,
+                modelRotationY: -Math.PI / 2
             }
         ];
 
@@ -207,7 +260,8 @@ loader.load(
             const cloneGroup = createCloneFromModel(
                 baseModel,
                 config.position,
-                config.rotationZ
+                config.rotationZ,
+                config.modelRotationY
             );
 
             hologramGroup.add(cloneGroup);
