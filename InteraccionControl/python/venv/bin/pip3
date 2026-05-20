@@ -1,4 +1,4 @@
-#!/home/juanmlc/Code/Control/python/venv/bin/python3
+#!/home/juanmlc/code/InstaHistory/InteraccionControl/python/venv/bin/python3
 # -*- coding: utf-8 -*-
 import re
 import sys

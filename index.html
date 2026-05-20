@@ -1,44 +1,66 @@
 <!doctype html>
 <html lang="es">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>InstaHistory — Login</title>
-  <link rel="stylesheet" href="css/styles.css" />
-  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
-</head>
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width,initial-scale=1" />
+        <title>InstaHistory — Login</title>
+        <link rel="stylesheet" href="css/styles.css" />
+        <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    </head>
 
-<body class="bg login">
+    <body class="bg login">
+        <a href="qr.html" class="btn secondary small login-qr-corner">Ver QR</a>
 
-  <a href="qr.html" class="btn secondary small login-qr-corner">Ver QR</a>
+        <main class="card card-login">
+            <div class="login-brand">
+                <span class="dot dot-lg"></span>
+                <div class="login-text">
+                    <img
+                        src="img/Logo-uao.png"
+                        alt="logo_uao"
+                        class="brand-logo"
+                    />
+                    <h1>InstaHistory</h1>
+                    <p class="muted login-tagline">
+                        Selecciona tu tipo de acceso
+                    </p>
+                </div>
+            </div>
 
-  <main class="card card-login">
-    <div class="login-brand">
-      <span class="dot dot-lg"></span>
-      <div>
-        <h1>InstaHistory</h1>
-        <p class="muted login-tagline">Selecciona tu tipo de acceso</p>
-      </div>
-    </div>
+            <form class="form form-login" id="loginForm">
+                <label>
+                    <span class="label">Correo institucional</span>
+                    <input
+                        id="email"
+                        type="email"
+                        placeholder="correo@uao.edu.co"
+                        required
+                        autocomplete="username"
+                    />
+                </label>
 
-    <form class="form form-login" id="loginForm">
-      <label>
-        <span class="label">Correo institucional</span>
-        <input id="email" type="email" placeholder="correo@uao.edu.co" required autocomplete="username" />
-      </label>
+                <label>
+                    <span class="label">Contraseña</span>
+                    <input
+                        id="password"
+                        type="password"
+                        placeholder="••••••••"
+                        required
+                        autocomplete="current-password"
+                    />
+                </label>
 
-      <label>
-        <span class="label">Contraseña</span>
-        <input id="password" type="password" placeholder="••••••••" required autocomplete="current-password" />
-      </label>
+                <p id="error" class="error"></p>
 
-      <p id="error" class="error"></p>
+                <button class="btn btn-block" type="submit">
+                    Entrar como administrador
+                </button>
+                <a href="usuario.html" class="btn secondary btn-block"
+                    >Entrar como estudiante</a
+                >
+            </form>
+        </main>
 
-      <button class="btn btn-block" type="submit">Entrar como administrador</button>
-      <a href="usuario.html" class="btn secondary btn-block">Entrar como estudiante</a>
-    </form>
-  </main>
-
-  <script src="js/auth.js"></script>
-</body>
+        <script src="js/auth.js"></script>
+    </body>
 </html>
