@@ -265,7 +265,7 @@ sudo apt install git
 ## Clonar el Repositorio
 
 ```bash
-git clone <URL_DEL_REPOSITORIO>
+git clone https://github.com/Santio0717/InstaHistory.git
 ```
 
 Luego ingresar a la carpeta:
