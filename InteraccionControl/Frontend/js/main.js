@@ -24,7 +24,7 @@ let zoomOutActivate = false;
 // ==============================
 // WEBSOCKET
 // ==============================
-const socket = new WebSocket("ws://localhost:8080");
+const socket = new WebSocket("ws://192.168.0.46:8080");
 
 socket.onopen = () => {
     console.log("Conectado al WebSocket");
